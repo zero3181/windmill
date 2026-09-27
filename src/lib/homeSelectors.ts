@@ -2,7 +2,10 @@ import type { Account } from '../types/account';
 import {
   addMonthsClamped,
   calcAccountFinancials,
+  compareISODates,
+  daysInMonth,
   parseISODate,
+  toISODate,
   todayKST,
   withDay,
   type AccountFinancials,
@@ -111,4 +114,102 @@ export function selectTimeline(
     });
   }
   return months;
+}
+
+export interface WindmillBar {
+  item: AccountWithFinancials;
+  /** 차트 시작월 기준 월 단위 위치 (일자는 소수로 반영) */
+  start: number;
+  end: number;
+  /** 가입일부터 매월 돌아오는 회차 경계 위치 (첫 회차, 만기 제외) */
+  ticks: number[];
+  /** 이 계좌가 채우는 풍차 날개 순번: 서로 다른 만기월을 이른 순으로 센 번호 (같은 만기월이면 같은 번호) */
+  bladeIndex: number;
+}
+
+export interface Windmill {
+  bars: WindmillBar[];
+  /** 차트 첫 달 (YYYY-MM-01) */
+  rangeStart: ISODate;
+  /** 차트에 그릴 전체 개월 수 */
+  monthCount: number;
+  today: number;
+  count: number;
+  /** 만기월(YYYY-MM)이 서로 다른 계좌 수. 같은 달에 만기되는 계좌는 날개 하나로 친다. */
+  maturityMonthCount: number;
+  /** 지금까지 납입한 원금 합계 (적금: 납입된 회차 합, 예금: 예치액) */
+  totalPrincipal: number;
+}
+
+/** date가 base 달의 1일로부터 몇 개월 떨어졌는지, 일자는 해당 월 일수 대비 소수로. */
+function monthPosition(base: ISODate, date: ISODate): number {
+  const b = parseISODate(base);
+  const { y, m, d } = parseISODate(date);
+  return (y - b.y) * 12 + (m - b.m) + (d - 1) / daysInMonth(y, m);
+}
+
+export function selectWindmill(
+  items: AccountWithFinancials[],
+  type: Account['type'],
+  today: ISODate = todayKST()
+): Windmill {
+  const rows = items
+    .filter((i) => i.account.status === 'active' && i.account.type === type)
+    .sort(
+      (a, b) =>
+        compareISODates(a.account.startDate, b.account.startDate) ||
+        compareISODates(a.financials.maturityDate, b.financials.maturityDate)
+    );
+
+  const firstDates = [today, ...rows.map((r) => r.account.startDate)].sort(compareISODates);
+  const lastDates = [today, ...rows.map((r) => r.financials.maturityDate)].sort(compareISODates);
+  const { y, m } = parseISODate(firstDates[0]);
+  const rangeStart = toISODate(y, m, 1);
+  const monthCount = Math.floor(monthPosition(rangeStart, lastDates[lastDates.length - 1])) + 1;
+
+  const maturityMonths = [...new Set(rows.map((r) => monthKey(r.financials.maturityDate)))].sort();
+
+  const bars = rows.map((item) => {
+    const { startDate, termMonths } = item.account;
+    const ticks: number[] = [];
+    for (let k = 1; k < termMonths; k++) {
+      ticks.push(monthPosition(rangeStart, addMonthsClamped(startDate, k)));
+    }
+    return {
+      item,
+      start: monthPosition(rangeStart, startDate),
+      end: monthPosition(rangeStart, item.financials.maturityDate),
+      ticks,
+      bladeIndex: maturityMonths.indexOf(monthKey(item.financials.maturityDate)),
+    };
+  });
+
+  return {
+    bars,
+    rangeStart,
+    monthCount,
+    today: monthPosition(rangeStart, today),
+    count: rows.length,
+    maturityMonthCount: maturityMonths.length,
+    totalPrincipal: rows.reduce((sum, r) => sum + r.financials.currentPrincipal, 0),
+  };
+}
+
+export interface Upcoming {
+  items: AccountWithFinancials[];
+  /** 기간 안에 만기가 없어 가장 가까운 만기 하나만 보여주는 경우 */
+  nextOnly: boolean;
+}
+
+/**
+ * 풍차에서 챙겨야 할 만기: 해당 종류의 진행 중 계좌 중 withinDays일 안에 만기되는 계좌
+ * (만기가 지났는데 아직 처리하지 않은 계좌 포함). 없으면 가장 가까운 만기 하나.
+ */
+export function selectUpcoming(items: AccountWithFinancials[], type: Account['type'], withinDays = 30): Upcoming {
+  const active = items
+    .filter((i) => i.account.status === 'active' && i.account.type === type)
+    .sort((a, b) => a.financials.daysToMaturity - b.financials.daysToMaturity);
+  const soon = active.filter((i) => i.financials.daysToMaturity <= withinDays);
+  if (soon.length > 0) return { items: soon, nextOnly: false };
+  return { items: active.slice(0, 1), nextOnly: active.length > 0 };
 }

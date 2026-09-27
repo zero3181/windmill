@@ -12,7 +12,14 @@ import {
   updateAccount as dbUpdateAccount,
 } from '../lib/db';
 import { rescheduleAllNotifications } from '../lib/notifications';
-import { boolToSetting, DEFAULT_SETTINGS, parseSettings, type AppSettings } from '../lib/settings';
+import {
+  boolToSetting,
+  DEFAULT_SETTINGS,
+  goalSettingKey,
+  parseSettings,
+  serializeGoal,
+  type AppSettings,
+} from '../lib/settings';
 import type { Account, NewAccountInput } from '../types/account';
 
 interface AccountsContextValue {
@@ -119,6 +126,11 @@ export function AccountsProvider({ children }: { children: React.ReactNode }) {
         setSetting(db, 'notifyDday', boolToSetting(merged.notifyDday)),
         setSetting(db, 'notifyPayday', boolToSetting(merged.notifyPayday)),
         setSetting(db, 'defaultTaxType', merged.defaultTaxType),
+        setSetting(db, 'onboardingDone', boolToSetting(merged.onboardingDone)),
+        setSetting(db, 'windmillSize.savings', String(merged.windmillSize.savings)),
+        setSetting(db, 'windmillSize.deposit', String(merged.windmillSize.deposit)),
+        setSetting(db, goalSettingKey('savings'), serializeGoal(merged.goals.savings)),
+        setSetting(db, goalSettingKey('deposit'), serializeGoal(merged.goals.deposit)),
       ]);
       await refresh();
     },

@@ -1,61 +1,80 @@
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { Stack, useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { computeMaturityDate, parseISODate, todayKST } from '../lib/calc';
-import { formatDateFull } from '../lib/format';
-import { TAX_TYPE_LABELS, type Account, type AccountType, type NewAccountInput, type TaxType } from '../types/account';
 import { colors, radius, spacing } from '../theme';
+import { TAX_TYPE_LABELS, type Account, type AccountType, type NewAccountInput, type TaxType } from '../types/account';
+import { Segmented } from './ui/Controls';
+import { DateRow, InputRow } from './ui/FormRows';
+import { Chevron, GroupedSection, ListRow } from './ui/Grouped';
 
 interface Props {
   initial?: Partial<Account>;
   knownBanks: string[];
   defaultTaxType: TaxType;
   submitLabel: string;
+  /** 폼 위에 띄울 안내 (예: 금리 비교에서 고른 상품 정보가 채워졌다는 안내) */
+  banner?: string;
+  /** 종류별 기본 금액: 이미 가입한 같은 종류 계좌의 금액 (매번 입력하지 않도록) */
+  defaultAmounts?: Partial<Record<AccountType, number>>;
+  /** 풍차 체크리스트에서 들어오면 종류가 정해져 있어 고르지 않는다. */
+  lockedType?: boolean;
+  /** 폼 맨 위에 둘 안내 (체크리스트 단계의 가입 조건 등) */
+  header?: React.ReactNode;
+  /** 이율·과세·납입일 등 세부 항목을 처음부터 펼칠지 (기존 계좌 편집) */
+  detailsOpen?: boolean;
   onSubmit: (input: NewAccountInput) => Promise<void>;
 }
 
-function toISODateFromDate(date: Date): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
+const TAX_SHORT: Record<TaxType, string> = { general: '일반과세', preferential: '세금우대', exempt: '비과세' };
+
+/** 별칭을 비워 두면 '9월 적금'처럼 가입 달로 이름을 붙인다. */
+function defaultName(type: AccountType, startDate: string): string {
+  return `${parseISODate(startDate).m}월 ${type === 'savings' ? '적금' : '예금'}`;
 }
 
-function toDateFromISO(iso: string): Date {
-  const { y, m, d } = parseISODate(iso);
-  return new Date(y, m - 1, d);
-}
-
-export function AccountForm({ initial, knownBanks, defaultTaxType, submitLabel, onSubmit }: Props) {
+export function AccountForm({
+  initial,
+  knownBanks,
+  defaultTaxType,
+  submitLabel,
+  banner,
+  defaultAmounts = {},
+  lockedType = false,
+  header,
+  detailsOpen = false,
+  onSubmit,
+}: Props) {
+  const router = useRouter();
   const [name, setName] = useState(initial?.name ?? '');
   const [bank, setBank] = useState(initial?.bank ?? '');
-  const [type, setType] = useState<AccountType>(initial?.type ?? 'deposit');
-  const [amountText, setAmountText] = useState(initial?.amount ? String(initial.amount) : '');
+  const [type, setType] = useState<AccountType>(initial?.type ?? 'savings');
+  const formatAmount = (n?: number) => (n ? n.toLocaleString('ko-KR') : '');
+  const [amountText, setAmountText] = useState(formatAmount(initial?.amount ?? defaultAmounts[initial?.type ?? 'savings']));
+  /** 금액을 직접 입력했거나 기존 값이 있으면 종류를 바꿔도 기본 금액으로 덮어쓰지 않는다 */
+  const [amountTouched, setAmountTouched] = useState(Boolean(initial?.amount));
   const [rateText, setRateText] = useState(initial?.rate ? String(initial.rate) : '');
   const [taxType, setTaxType] = useState<TaxType>(initial?.taxType ?? defaultTaxType);
   const [startDate, setStartDate] = useState<string>(initial?.startDate ?? todayKST());
-  const [termMonthsText, setTermMonthsText] = useState(String(initial?.termMonths ?? 12));
+  const [termMonths, setTermMonths] = useState(initial?.termMonths ?? 12);
   const [payDayText, setPayDayText] = useState(
     initial?.payDay ? String(initial.payDay) : String(parseISODate(initial?.startDate ?? todayKST()).d)
   );
   const [memo, setMemo] = useState(initial?.memo ?? '');
-  const [showStartPicker, setShowStartPicker] = useState(false);
-  const [maturityOverride, setMaturityOverride] = useState<string | null>(initial?.maturityDate ?? null);
-  const [showMaturityPicker, setShowMaturityPicker] = useState(false);
+  // 기존 만기일이 가입일+기간으로 계산한 값과 다를 때만 직접 정한 만기일로 본다.
+  const [maturityOverride, setMaturityOverride] = useState<string | null>(
+    initial?.maturityDate && initial.startDate && initial.termMonths
+      ? initial.maturityDate === computeMaturityDate(initial.startDate, initial.termMonths)
+        ? null
+        : initial.maturityDate
+      : null
+  );
   const [showBankSuggestions, setShowBankSuggestions] = useState(false);
+  const [showDetails, setShowDetails] = useState(detailsOpen);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const termMonths = parseInt(termMonthsText, 10) || 0;
+  const termOptions = Array.from(new Set([6, 12, initial?.termMonths ?? 12])).sort((a, b) => a - b);
   const computedMaturity = useMemo(
     () => (startDate && termMonths > 0 ? computeMaturityDate(startDate, termMonths) : ''),
     [startDate, termMonths]
@@ -67,31 +86,28 @@ export function AccountForm({ initial, knownBanks, defaultTaxType, submitLabel, 
     return knownBanks.filter((b) => b.includes(bank) && b !== bank).slice(0, 5);
   }, [bank, knownBanks]);
 
-  function handleStartDateChange(_event: unknown, date?: Date) {
-    setShowStartPicker(Platform.OS === 'ios');
-    if (date) {
-      const iso = toISODateFromDate(date);
-      setStartDate(iso);
-      if (!initial?.payDay) {
-        setPayDayText(String(parseISODate(iso).d));
-      }
-    }
+  function handleStartDateChange(iso: string) {
+    setStartDate(iso);
+    // 가입일을 바꾸면 만기일도 가입 기간에 맞춰 다시 계산한다.
+    setMaturityOverride(null);
+    if (!initial?.payDay) setPayDayText(String(parseISODate(iso).d));
   }
 
-  function handleMaturityDateChange(_event: unknown, date?: Date) {
-    setShowMaturityPicker(Platform.OS === 'ios');
-    if (date) {
-      setMaturityOverride(toISODateFromDate(date));
-    }
+  function handleTermChange(months: number) {
+    setTermMonths(months);
+    setMaturityOverride(null);
+  }
+
+  function handleTypeChange(next: AccountType) {
+    setType(next);
+    if (!amountTouched) setAmountText(formatAmount(defaultAmounts[next]));
   }
 
   function validate(): string | null {
-    if (!name.trim()) return '별칭을 입력해주세요';
-    if (!bank.trim()) return '은행을 입력해주세요';
     const amount = Number(amountText.replace(/,/g, ''));
     if (!amount || amount <= 0) return '금액을 입력해주세요';
-    const rate = Number(rateText);
-    if (isNaN(rate) || rate < 0) return '금리를 입력해주세요';
+    const rate = Number(rateText || 0);
+    if (isNaN(rate) || rate < 0) return '금리를 숫자로 입력해주세요';
     if (!termMonths || termMonths <= 0) return '가입 기간을 입력해주세요';
     if (type === 'savings') {
       const payDay = Number(payDayText);
@@ -110,11 +126,11 @@ export function AccountForm({ initial, knownBanks, defaultTaxType, submitLabel, 
     setSubmitting(true);
     try {
       const input: NewAccountInput = {
-        name: name.trim(),
+        name: name.trim() || defaultName(type, startDate),
         bank: bank.trim(),
         type,
         amount: Number(amountText.replace(/,/g, '')),
-        rate: Number(rateText),
+        rate: Number(rateText || 0),
         taxType,
         startDate,
         termMonths,
@@ -129,312 +145,197 @@ export function AccountForm({ initial, knownBanks, defaultTaxType, submitLabel, 
   }
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-    >
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <Field label="별칭">
-          <TextInput
-            style={styles.input}
-            placeholder="예: 3월 적금"
-            value={name}
-            onChangeText={setName}
-          />
-        </Field>
+    <>
+      <Stack.Toolbar placement="left">
+        <Stack.Toolbar.Button onPress={() => router.back()}>취소</Stack.Toolbar.Button>
+      </Stack.Toolbar>
+      <Stack.Toolbar placement="right">
+        <Stack.Toolbar.Button variant="done" disabled={submitting} onPress={handleSubmit}>
+          {submitLabel}
+        </Stack.Toolbar.Button>
+      </Stack.Toolbar>
 
-        <Field label="은행">
-          <TextInput
-            style={styles.input}
-            placeholder="예: OO저축은행"
-            value={bank}
-            onChangeText={(v) => {
-              setBank(v);
-              setShowBankSuggestions(true);
-            }}
-            onFocus={() => setShowBankSuggestions(true)}
-          />
-          {showBankSuggestions && bankSuggestions.length > 0 && (
-            <View style={styles.suggestionBox}>
-              {bankSuggestions.map((b) => (
-                <TouchableOpacity
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView
+          contentInsetAdjustmentBehavior="automatic"
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+        >
+          {banner && (
+            <View style={styles.banner}>
+              <Text style={styles.bannerText}>{banner}</Text>
+            </View>
+          )}
+          {error && (
+            <View style={[styles.banner, styles.errorBanner]}>
+              <Text style={[styles.bannerText, styles.errorText]}>{error}</Text>
+            </View>
+          )}
+
+          {header}
+
+          {!lockedType && (
+            <Segmented
+              options={[
+                { value: 'savings', label: '적금' },
+                { value: 'deposit', label: '예금' },
+              ]}
+              value={type}
+              onChange={handleTypeChange}
+            />
+          )}
+
+          <GroupedSection>
+            <InputRow
+              title={type === 'deposit' ? '예치 원금' : '월 납입액'}
+              value={amountText}
+              onChangeText={(t) => {
+                setAmountText(formatAmount(Number(t.replace(/[^0-9]/g, ''))));
+                setAmountTouched(true);
+              }}
+              keyboardType="number-pad"
+              placeholder="0"
+              suffix="원"
+            />
+            <DateRow title="가입일" value={startDate} onChange={handleStartDateChange} />
+            <View style={styles.taxRow}>
+              <Text style={styles.taxLabel}>가입 기간</Text>
+              <Segmented
+                options={termOptions.map((m) => ({ value: String(m), label: `${m}개월` }))}
+                value={String(termMonths)}
+                onChange={(v) => handleTermChange(Number(v))}
+              />
+            </View>
+            <InputRow
+              title="은행"
+              value={bank}
+              onChangeText={(v) => {
+                setBank(v);
+                setShowBankSuggestions(true);
+              }}
+              onFocus={() => setShowBankSuggestions(true)}
+              placeholder="선택"
+            />
+            {showBankSuggestions &&
+              bankSuggestions.map((b) => (
+                <ListRow
                   key={b}
-                  style={styles.suggestionItem}
+                  title={b}
+                  tint="primary"
                   onPress={() => {
                     setBank(b);
                     setShowBankSuggestions(false);
                   }}
-                >
-                  <Text style={styles.suggestionText}>{b}</Text>
-                </TouchableOpacity>
+                />
               ))}
-            </View>
+          </GroupedSection>
+
+          <Pressable style={styles.detailsToggle} onPress={() => setShowDetails((v) => !v)} hitSlop={8}>
+            <Text style={styles.detailsToggleText}>세부 정보 {showDetails ? '접기' : '입력'}</Text>
+            <Chevron direction={showDetails ? 'up' : 'down'} />
+          </Pressable>
+
+          {showDetails && (
+            <>
+              <GroupedSection footer="금리를 넣으면 만기 때 받을 이자를 계산해 드려요.">
+                <InputRow title="별칭" value={name} onChangeText={setName} placeholder={defaultName(type, startDate)} />
+                <InputRow title="연 이율" value={rateText} onChangeText={setRateText} keyboardType="decimal-pad" placeholder="3.50" suffix="%" />
+                <View style={styles.taxRow}>
+                  <Text style={styles.taxLabel}>과세 구분</Text>
+                  <View style={styles.taxControl}>
+                    <Segmented
+                      options={(Object.keys(TAX_SHORT) as TaxType[]).map((k) => ({ value: k, label: TAX_SHORT[k] }))}
+                      value={taxType}
+                      onChange={setTaxType}
+                    />
+                  </View>
+                </View>
+              </GroupedSection>
+
+              <GroupedSection
+                footer={
+                  maturityOverride !== null ? undefined : '만기일은 가입일과 기간으로 자동 계산돼요. 직접 바꿀 수도 있어요.'
+                }
+              >
+                {type === 'savings' && (
+                  <InputRow title="월 납입일" value={payDayText} onChangeText={setPayDayText} keyboardType="number-pad" placeholder="1~31" suffix="일" />
+                )}
+                {maturityDate ? <DateRow title="만기일" value={maturityDate} onChange={setMaturityOverride} /> : null}
+              </GroupedSection>
+              {maturityOverride !== null && (
+                <Pressable onPress={() => setMaturityOverride(null)} hitSlop={8}>
+                  <Text style={styles.resetLink}>만기일 자동 계산으로 되돌리기</Text>
+                </Pressable>
+              )}
+
+              <GroupedSection>
+                <InputRow title="메모" value={memo} onChangeText={setMemo} placeholder="선택" />
+              </GroupedSection>
+
+              <Text style={styles.taxNote}>{TAX_TYPE_LABELS[taxType]} 기준으로 이자를 계산해요.</Text>
+            </>
           )}
-        </Field>
-
-        <Field label="종류">
-          <SegmentedControl
-            options={[
-              { value: 'deposit', label: '예금' },
-              { value: 'savings', label: '적금' },
-            ]}
-            value={type}
-            onChange={(v) => setType(v as AccountType)}
-          />
-        </Field>
-
-        <Field label={type === 'deposit' ? '예치 원금' : '월 납입액'}>
-          <TextInput
-            style={styles.input}
-            placeholder="예: 1000000"
-            keyboardType="number-pad"
-            value={amountText}
-            onChangeText={setAmountText}
-          />
-        </Field>
-
-        <Field label="연 이율 (%)">
-          <TextInput
-            style={styles.input}
-            placeholder="예: 3.50"
-            keyboardType="decimal-pad"
-            value={rateText}
-            onChangeText={setRateText}
-          />
-        </Field>
-
-        <Field label="과세 구분">
-          <SegmentedControl
-            options={(Object.keys(TAX_TYPE_LABELS) as TaxType[]).map((k) => ({
-              value: k,
-              label: TAX_TYPE_LABELS[k],
-            }))}
-            value={taxType}
-            onChange={(v) => setTaxType(v as TaxType)}
-            compact
-          />
-        </Field>
-
-        <Field label="가입일">
-          <TouchableOpacity style={styles.input} onPress={() => setShowStartPicker(true)}>
-            <Text style={styles.dateText}>{formatDateFull(startDate)}</Text>
-          </TouchableOpacity>
-          {showStartPicker && (
-            <DateTimePicker
-              value={toDateFromISO(startDate)}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={handleStartDateChange}
-            />
-          )}
-        </Field>
-
-        <Field label="가입 기간 (개월)">
-          <TextInput
-            style={styles.input}
-            placeholder="12"
-            keyboardType="number-pad"
-            value={termMonthsText}
-            onChangeText={setTermMonthsText}
-          />
-        </Field>
-
-        {type === 'savings' && (
-          <Field label="월 납입일">
-            <TextInput
-              style={styles.input}
-              placeholder="1~31"
-              keyboardType="number-pad"
-              value={payDayText}
-              onChangeText={setPayDayText}
-            />
-          </Field>
-        )}
-
-        <Field label="만기일">
-          <TouchableOpacity style={styles.input} onPress={() => setShowMaturityPicker(true)}>
-            <Text style={styles.dateText}>{maturityDate ? formatDateFull(maturityDate) : '-'}</Text>
-          </TouchableOpacity>
-          {maturityOverride !== null && (
-            <TouchableOpacity onPress={() => setMaturityOverride(null)}>
-              <Text style={styles.resetLink}>자동 계산으로 되돌리기</Text>
-            </TouchableOpacity>
-          )}
-          {showMaturityPicker && (
-            <DateTimePicker
-              value={toDateFromISO(maturityDate || todayKST())}
-              mode="date"
-              display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-              onChange={handleMaturityDateChange}
-            />
-          )}
-        </Field>
-
-        <Field label="메모 (선택)">
-          <TextInput
-            style={styles.input}
-            placeholder="한 줄 메모"
-            value={memo}
-            onChangeText={setMemo}
-          />
-        </Field>
-
-        {error && <Text style={styles.errorText}>{error}</Text>}
-
-        <TouchableOpacity
-          style={[styles.submitButton, submitting && styles.submitButtonDisabled]}
-          onPress={handleSubmit}
-          disabled={submitting}
-        >
-          <Text style={styles.submitButtonText}>{submitting ? '저장 중...' : submitLabel}</Text>
-        </TouchableOpacity>
-      </ScrollView>
-    </KeyboardAvoidingView>
-  );
-}
-
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <View style={styles.field}>
-      <Text style={styles.fieldLabel}>{label}</Text>
-      {children}
-    </View>
-  );
-}
-
-function SegmentedControl<T extends string>({
-  options,
-  value,
-  onChange,
-  compact,
-}: {
-  options: { value: T; label: string }[];
-  value: T;
-  onChange: (v: T) => void;
-  compact?: boolean;
-}) {
-  return (
-    <View style={styles.segmented}>
-      {options.map((opt) => {
-        const selected = opt.value === value;
-        return (
-          <TouchableOpacity
-            key={opt.value}
-            style={[styles.segment, selected && styles.segmentSelected]}
-            onPress={() => onChange(opt.value)}
-          >
-            <Text
-              style={[styles.segmentText, selected && styles.segmentTextSelected]}
-              numberOfLines={1}
-              adjustsFontSizeToFit={compact}
-            >
-              {opt.label}
-            </Text>
-          </TouchableOpacity>
-        );
-      })}
-    </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    padding: spacing.lg,
+  content: {
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
     paddingBottom: spacing.xxl * 2,
+    gap: spacing.xl - 4,
   },
-  field: {
-    marginBottom: spacing.lg,
+  banner: {
+    backgroundColor: colors.primarySoft,
+    borderRadius: radius.md,
+    paddingHorizontal: spacing.md + 2,
+    paddingVertical: spacing.sm + 2,
   },
-  fieldLabel: {
+  bannerText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: colors.textMuted,
-    marginBottom: spacing.xs,
-  },
-  input: {
-    backgroundColor: colors.card,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    fontSize: 15,
-    color: colors.text,
-    justifyContent: 'center',
-  },
-  dateText: {
-    fontSize: 15,
-    color: colors.text,
-  },
-  suggestionBox: {
-    marginTop: spacing.xs,
-    backgroundColor: colors.card,
-    borderRadius: radius.md,
-    borderWidth: 1,
-    borderColor: colors.border,
-    overflow: 'hidden',
-  },
-  suggestionItem: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  suggestionText: {
-    fontSize: 14,
-    color: colors.text,
-  },
-  segmented: {
-    flexDirection: 'row',
-    backgroundColor: colors.bg,
-    borderRadius: radius.md,
-    padding: 4,
-    gap: 4,
-  },
-  segment: {
-    flex: 1,
-    paddingVertical: spacing.sm,
-    alignItems: 'center',
-    borderRadius: radius.sm,
-  },
-  segmentSelected: {
-    backgroundColor: colors.card,
-    shadowColor: '#000',
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  segmentText: {
-    fontSize: 13,
-    color: colors.textMuted,
-    fontWeight: '600',
-  },
-  segmentTextSelected: {
     color: colors.primary,
   },
-  resetLink: {
-    fontSize: 12,
-    color: colors.primary,
-    marginTop: spacing.xs,
+  errorBanner: {
+    backgroundColor: colors.dangerSoft,
   },
   errorText: {
     color: colors.danger,
-    fontSize: 13,
-    marginBottom: spacing.md,
   },
-  submitButton: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.md,
+  taxRow: {
+    paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
+    gap: spacing.sm,
+  },
+  taxLabel: {
+    fontSize: 17,
+    color: colors.text,
+  },
+  taxControl: {
+    alignSelf: 'stretch',
+  },
+  resetLink: {
+    fontSize: 13,
+    color: colors.primary,
+    paddingHorizontal: spacing.lg,
+    marginTop: -spacing.md,
+  },
+  detailsToggle: {
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: spacing.sm,
+    gap: 4,
+    paddingHorizontal: spacing.lg,
+    marginTop: -spacing.sm,
   },
-  submitButtonDisabled: {
-    opacity: 0.6,
+  detailsToggleText: {
+    fontSize: 15,
+    color: colors.primary,
   },
-  submitButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '700',
+  taxNote: {
+    fontSize: 12,
+    color: colors.textFaint,
+    textAlign: 'center',
   },
 });

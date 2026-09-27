@@ -1,0 +1,370 @@
+{
+ "baseList": [
+  {
+   "fin_co_no": "0014807",
+   "fin_prdt_cd": "10141114300011",
+   "kor_co_nm": "수협은행",
+   "fin_prdt_nm": "Sh해양플라스틱Zero!적금\n(자유적립식)",
+   "join_way": "영업점,인터넷,스마트폰",
+   "spcl_cnd": "* 최대우대금리:0.5%\n1. 해양플라스틱감축서약 : 0.1% (신규시) \n2. 봉사활동 또는 상품홍보 : 0.2% (만기시) \n3. 입출금통장 최초신규 : 0.2% (만기시)\n4. 자동이체 출금실적 : 0.2% (만기시)\n - 수협신용카드 / 당행 펀드 / 수협체크카드",
+   "join_deny": "1",
+   "join_member": "실명의 개인",
+   "etc_note": "- 1인 1계좌 \n- 월 가입한도 : 20만원",
+   "max_limit": 200000,
+   "dcls_month": "202609",
+   "grp": "020000"
+  },
+  {
+   "fin_co_no": "0010349",
+   "fin_prdt_cd": "310821",
+   "kor_co_nm": "디비저축은행",
+   "fin_prdt_nm": "M-DB행복씨앗적금",
+   "join_way": "스마트폰",
+   "spcl_cnd": "*최고우대금리 : 2.0%\n1. 목표다짐 선택 +0.5%\n2. 해당상품 만기해지 시 +0.5%\n3. 당사 마케팅 전체 동의 +0.5%\n4. 가입기간 내 결혼, 임신, 출산 중 한 가지 이상 충족 +0.25%\n5. 다자녀 가정 +0.25%",
+   "join_deny": "1",
+   "join_member": "만19세 이상 실명의 개인",
+   "etc_note": "1. 1인1계좌\n2. 가입금액 : 월1만원~50만원이하",
+   "max_limit": 500000,
+   "dcls_month": "202609",
+   "grp": "030300"
+  },
+  {
+   "fin_co_no": "0010421",
+   "fin_prdt_cd": "KH3100",
+   "kor_co_nm": "금화저축은행",
+   "fin_prdt_nm": "정기적금",
+   "join_way": "영업점",
+   "spcl_cnd": "창구전용상품",
+   "join_deny": "1",
+   "join_member": "제한없음",
+   "etc_note": "중도해지 이율 - ① 1개월 미만 : 보통예금이율 (0.2%)\n② 1개월이상~6개월미만 : 약정이율X50%\n③ 6개월이상~12개월미만 : 약정이율X55%\n④ 12개월이상~24개월미만 : 약정이율X60%\n⑤ 24개월이상~60개월미만 : 약정이율X70%",
+   "max_limit": null,
+   "dcls_month": "202609",
+   "grp": "030300"
+  },
+  {
+   "fin_co_no": "0010489",
+   "fin_prdt_cd": "310011",
+   "kor_co_nm": "청주저축은행",
+   "fin_prdt_nm": "펫팸정기적금_천안지점",
+   "join_way": "영업점",
+   "spcl_cnd": "없음",
+   "join_deny": "1",
+   "join_member": "반려동물을 키우는 지점방문고객(개인)",
+   "etc_note": "상품 문의 ☎ 041-522-9114",
+   "max_limit": null,
+   "dcls_month": "202609",
+   "grp": "030300"
+  },
+  {
+   "fin_co_no": "0010489",
+   "fin_prdt_cd": "310012",
+   "kor_co_nm": "청주저축은행",
+   "fin_prdt_nm": "단비 정기적금",
+   "join_way": "영업점,인터넷,스마트폰",
+   "spcl_cnd": "없음",
+   "join_deny": "1",
+   "join_member": "제한없음",
+   "etc_note": "상품 문의 ☎ 043-256-9114",
+   "max_limit": null,
+   "dcls_month": "202609",
+   "grp": "030300"
+  },
+  {
+   "fin_co_no": "0010560",
+   "fin_prdt_cd": "C614004",
+   "kor_co_nm": "참저축은행",
+   "fin_prdt_nm": "정기적금",
+   "join_way": "영업점",
+   "spcl_cnd": "없음",
+   "join_deny": "1",
+   "join_member": "제한없음",
+   "etc_note": "없음",
+   "max_limit": null,
+   "dcls_month": "202609",
+   "grp": "030300"
+  },
+  {
+   "fin_co_no": "0010560",
+   "fin_prdt_cd": "C614005",
+   "kor_co_nm": "참저축은행",
+   "fin_prdt_nm": "비대면정기적금",
+   "join_way": "스마트폰",
+   "spcl_cnd": "없음",
+   "join_deny": "1",
+   "join_member": "만19세 이상 내국인(법인불가)",
+   "etc_note": "SB톡톡플러스 비로그인서비스로 신규가입 시",
+   "max_limit": null,
+   "dcls_month": "202609",
+   "grp": "030300"
+  },
+  {
+   "fin_co_no": "0013127",
+   "fin_prdt_cd": "310006",
+   "kor_co_nm": "KB저축은행",
+   "fin_prdt_nm": "KB착한누리적금",
+   "join_way": "영업점,인터넷,스마트폰",
+   "spcl_cnd": "인터넷뱅킹/모바일뱅킹으로 가입시 우대이율 연0.5% 적용",
+   "join_deny": "1",
+   "join_member": "기초생활수급자, 소년소녀가장, 한부모가족지원보호대상자, 새터민, 만65세이상 차상위계층, 장애인연금·장애수당·장애아동수당 대상자",
+   "etc_note": "-12개월 가입가능\n- 가입금액:1만원이상~30만원이하\n- 증빙서류제출후가입",
+   "max_limit": 300000,
+   "dcls_month": "202609",
+   "grp": "030300"
+  }
+ ],
+ "optionList": [
+  {
+   "fin_co_no": "0014807",
+   "fin_prdt_cd": "10141114300011",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "자유적립식",
+   "save_trm": "12",
+   "intr_rate": 3.65,
+   "intr_rate2": 4.15
+  },
+  {
+   "fin_co_no": "0014807",
+   "fin_prdt_cd": "10141114300011",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "자유적립식",
+   "save_trm": "24",
+   "intr_rate": 2.85,
+   "intr_rate2": 3.35
+  },
+  {
+   "fin_co_no": "0014807",
+   "fin_prdt_cd": "10141114300011",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "자유적립식",
+   "save_trm": "36",
+   "intr_rate": 2.85,
+   "intr_rate2": 3.35
+  },
+  {
+   "fin_co_no": "0010349",
+   "fin_prdt_cd": "310821",
+   "intr_rate_type_nm": "복리",
+   "rsrv_type_nm": "정액적립식",
+   "save_trm": "12",
+   "intr_rate": 4,
+   "intr_rate2": 6
+  },
+  {
+   "fin_co_no": "0010349",
+   "fin_prdt_cd": "310821",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "정액적립식",
+   "save_trm": "12",
+   "intr_rate": 4,
+   "intr_rate2": 6
+  },
+  {
+   "fin_co_no": "0010421",
+   "fin_prdt_cd": "KH3100",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "정액적립식",
+   "save_trm": "6",
+   "intr_rate": 3,
+   "intr_rate2": 3
+  },
+  {
+   "fin_co_no": "0010421",
+   "fin_prdt_cd": "KH3100",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "정액적립식",
+   "save_trm": "36",
+   "intr_rate": 3.5,
+   "intr_rate2": 3.5
+  },
+  {
+   "fin_co_no": "0010421",
+   "fin_prdt_cd": "KH3100",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "정액적립식",
+   "save_trm": "24",
+   "intr_rate": 4,
+   "intr_rate2": 4
+  },
+  {
+   "fin_co_no": "0010421",
+   "fin_prdt_cd": "KH3100",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "정액적립식",
+   "save_trm": "12",
+   "intr_rate": 4,
+   "intr_rate2": 4
+  },
+  {
+   "fin_co_no": "0010421",
+   "fin_prdt_cd": "KH3100",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "자유적립식",
+   "save_trm": "6",
+   "intr_rate": 3.3,
+   "intr_rate2": 3.3
+  },
+  {
+   "fin_co_no": "0010421",
+   "fin_prdt_cd": "KH3100",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "자유적립식",
+   "save_trm": "36",
+   "intr_rate": 3,
+   "intr_rate2": 3
+  },
+  {
+   "fin_co_no": "0010421",
+   "fin_prdt_cd": "KH3100",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "자유적립식",
+   "save_trm": "3",
+   "intr_rate": 2.2,
+   "intr_rate2": 2.2
+  },
+  {
+   "fin_co_no": "0010421",
+   "fin_prdt_cd": "KH3100",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "자유적립식",
+   "save_trm": "24",
+   "intr_rate": 3,
+   "intr_rate2": 3
+  },
+  {
+   "fin_co_no": "0010421",
+   "fin_prdt_cd": "KH3100",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "자유적립식",
+   "save_trm": "12",
+   "intr_rate": 3.9,
+   "intr_rate2": 3.9
+  },
+  {
+   "fin_co_no": "0010421",
+   "fin_prdt_cd": "KH3100",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "자유적립식",
+   "save_trm": "1",
+   "intr_rate": 1.7,
+   "intr_rate2": 1.7
+  },
+  {
+   "fin_co_no": "0010489",
+   "fin_prdt_cd": "310011",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "정액적립식",
+   "save_trm": "12",
+   "intr_rate": 6,
+   "intr_rate2": 6
+  },
+  {
+   "fin_co_no": "0010489",
+   "fin_prdt_cd": "310012",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "정액적립식",
+   "save_trm": "6",
+   "intr_rate": 2.1,
+   "intr_rate2": 2.1
+  },
+  {
+   "fin_co_no": "0010489",
+   "fin_prdt_cd": "310012",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "정액적립식",
+   "save_trm": "36",
+   "intr_rate": 4,
+   "intr_rate2": 4
+  },
+  {
+   "fin_co_no": "0010489",
+   "fin_prdt_cd": "310012",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "정액적립식",
+   "save_trm": "24",
+   "intr_rate": 5,
+   "intr_rate2": 5
+  },
+  {
+   "fin_co_no": "0010489",
+   "fin_prdt_cd": "310012",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "정액적립식",
+   "save_trm": "12",
+   "intr_rate": 6,
+   "intr_rate2": 6
+  },
+  {
+   "fin_co_no": "0010560",
+   "fin_prdt_cd": "C614004",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "정액적립식",
+   "save_trm": "12",
+   "intr_rate": 4.2,
+   "intr_rate2": 4.2
+  },
+  {
+   "fin_co_no": "0010560",
+   "fin_prdt_cd": "C614004",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "정액적립식",
+   "save_trm": "24",
+   "intr_rate": 3.8,
+   "intr_rate2": 3.8
+  },
+  {
+   "fin_co_no": "0010560",
+   "fin_prdt_cd": "C614004",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "정액적립식",
+   "save_trm": "6",
+   "intr_rate": 3,
+   "intr_rate2": 3
+  },
+  {
+   "fin_co_no": "0010560",
+   "fin_prdt_cd": "C614005",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "정액적립식",
+   "save_trm": "12",
+   "intr_rate": 4.2,
+   "intr_rate2": 4.2
+  },
+  {
+   "fin_co_no": "0010560",
+   "fin_prdt_cd": "C614005",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "정액적립식",
+   "save_trm": "24",
+   "intr_rate": 3.8,
+   "intr_rate2": 3.8
+  },
+  {
+   "fin_co_no": "0010560",
+   "fin_prdt_cd": "C614005",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "정액적립식",
+   "save_trm": "6",
+   "intr_rate": 3,
+   "intr_rate2": 3
+  },
+  {
+   "fin_co_no": "0013127",
+   "fin_prdt_cd": "310006",
+   "intr_rate_type_nm": "복리",
+   "rsrv_type_nm": "정액적립식",
+   "save_trm": "12",
+   "intr_rate": 4.5,
+   "intr_rate2": 5
+  },
+  {
+   "fin_co_no": "0013127",
+   "fin_prdt_cd": "310006",
+   "intr_rate_type_nm": "단리",
+   "rsrv_type_nm": "정액적립식",
+   "save_trm": "12",
+   "intr_rate": 4.5,
+   "intr_rate2": 5
+  }
+ ]
+}

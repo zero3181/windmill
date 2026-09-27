@@ -1,58 +1,52 @@
 import { useRouter } from 'expo-router';
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { colors, radius, spacing } from '../theme';
+import { StyleSheet, Text, View } from 'react-native';
+import { colors, spacing } from '../theme';
+import { PrimaryButton } from './ui/Controls';
+import { Card } from './ui/Grouped';
+import { Windmill } from './Windmill';
 
+/** 아직 풍차도 계좌도 없을 때: 풍차 만들기로 시작한다. */
 export function EmptyState() {
   const router = useRouter();
   return (
-    <View style={styles.wrap}>
-      <Text style={styles.emoji}>🏦</Text>
-      <Text style={styles.title}>풍차돌리기를 시작해보세요</Text>
-      <Text style={styles.desc}>
-        매달 새 예·적금을 하나씩 가입해 매달 만기가 돌아오게 만드는 저축 방식이에요.{'\n'}
-        아래는 예시 화면이에요 — 계좌를 등록하면 진짜 데이터로 바뀌어요.
-      </Text>
-      <TouchableOpacity style={styles.button} onPress={() => router.push('/account/new')}>
-        <Text style={styles.buttonText}>첫 계좌 추가</Text>
-      </TouchableOpacity>
-    </View>
+    <Card style={styles.card}>
+      <View style={styles.art}>
+        <Windmill blades={12} filled={0} width={200} />
+      </View>
+      <Text style={styles.title}>나만의 풍차를 만들어 보세요</Text>
+      <Text style={styles.desc}>날개 수와 금액만 정하면{'\n'}매달 무엇을 가입하면 되는지 알려드려요.</Text>
+      <View style={styles.actions}>
+        <PrimaryButton label="풍차 만들기" onPress={() => router.push('/create-windmill')} />
+        <PrimaryButton label="이미 가입한 계좌가 있어요" variant="plain" onPress={() => router.push('/add-account')} />
+      </View>
+    </Card>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: {
+  card: {
+    gap: spacing.sm,
     alignItems: 'center',
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.xl,
-    paddingBottom: spacing.md,
   },
-  emoji: {
-    fontSize: 40,
+  art: {
     marginBottom: spacing.sm,
   },
   title: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '700',
     color: colors.text,
-    marginBottom: spacing.sm,
+    textAlign: 'center',
   },
   desc: {
-    fontSize: 13,
-    color: colors.textMuted,
-    textAlign: 'center',
-    lineHeight: 19,
-    marginBottom: spacing.lg,
-  },
-  button: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.md,
-    paddingHorizontal: spacing.xl,
-    paddingVertical: spacing.md,
-  },
-  buttonText: {
-    color: '#fff',
     fontSize: 15,
-    fontWeight: '700',
+    color: colors.textMuted,
+    lineHeight: 21,
+    textAlign: 'center',
+  },
+  actions: {
+    alignSelf: 'stretch',
+    gap: spacing.sm,
+    marginTop: spacing.md,
   },
 });

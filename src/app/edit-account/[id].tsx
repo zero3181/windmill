@@ -1,8 +1,8 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo } from 'react';
-import { AccountForm } from '../../../components/AccountForm';
-import { useAccounts } from '../../../store/AccountsContext';
-import type { NewAccountInput } from '../../../types/account';
+import { AccountForm } from '../../components/AccountForm';
+import { useAccounts } from '../../store/AccountsContext';
+import type { NewAccountInput } from '../../types/account';
 
 export default function EditAccountScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -10,7 +10,7 @@ export default function EditAccountScreen() {
   const { accounts, editAccount, settings } = useAccounts();
 
   const account = useMemo(() => accounts.find((a) => a.id === id), [accounts, id]);
-  const knownBanks = useMemo(() => Array.from(new Set(accounts.map((a) => a.bank))), [accounts]);
+  const knownBanks = useMemo(() => Array.from(new Set(accounts.map((a) => a.bank).filter(Boolean))), [accounts]);
 
   async function handleSubmit(input: NewAccountInput) {
     if (!account) return;
@@ -25,7 +25,8 @@ export default function EditAccountScreen() {
       initial={account}
       knownBanks={knownBanks}
       defaultTaxType={settings.defaultTaxType}
-      submitLabel="수정 완료"
+      submitLabel="완료"
+      detailsOpen
       onSubmit={handleSubmit}
     />
   );

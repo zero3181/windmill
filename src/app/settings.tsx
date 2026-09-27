@@ -1,12 +1,16 @@
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Switch } from 'react-native';
+import { GroupedSection, ListRow } from '../components/ui/Grouped';
 import { exportBackup, pickAndParseBackup } from '../lib/backup';
+import { ensureNotificationSetup } from '../lib/notifications';
 import { useAccounts } from '../store/AccountsContext';
+import { colors, spacing } from '../theme';
 import { TAX_TYPE_LABELS, type TaxType } from '../types/account';
-import { colors, radius, spacing } from '../theme';
 
 export default function SettingsScreen() {
   const { accounts, rawSettings, settings, updateSettings, restoreFromBackup } = useAccounts();
+  const router = useRouter();
   const [busy, setBusy] = useState(false);
 
   async function handleExport() {
@@ -48,140 +52,84 @@ export default function SettingsScreen() {
     }
   }
 
+  function toggle(value: boolean, onChange: (v: boolean) => void) {
+    // 알림을 켜는 순간 아직 권한이 없으면 묻는다.
+    const handleChange = async (v: boolean) => {
+      if (v) await ensureNotificationSetup(true).catch(() => false);
+      onChange(v);
+    };
+    return <Switch value={value} onValueChange={handleChange} trackColor={{ true: colors.success }} />;
+  }
+
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content}>
-      <Section title="알림">
-        <ToggleRow
-          label="만기 D-7 알림"
-          value={settings.notifyD7}
-          onChange={(v) => updateSettings({ notifyD7: v })}
-        />
-        <ToggleRow
-          label="만기 당일 알림"
-          value={settings.notifyDday}
-          onChange={(v) => updateSettings({ notifyDday: v })}
-        />
-        <ToggleRow
-          label="적금 납입일 알림 (오전 9시)"
-          value={settings.notifyPayday}
-          onChange={(v) => updateSettings({ notifyPayday: v })}
-        />
-      </Section>
+    <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.content}>
+      <GroupedSection title="내 풍차">
+        {(['savings', 'deposit'] as const).map((t) => {
+          const goal = settings.goals[t];
+          const label = t === 'savings' ? '적금 풍차' : '예금 풍차';
+          return (
+            <ListRow
+              key={t}
+              title={goal ? `${label} 수정` : `${label} 만들기`}
+              detail={goal ? `날개 ${goal.blades}개` : undefined}
+              chevron
+              onPress={() => router.push({ pathname: '/create-windmill', params: goal ? { type: t } : {} })}
+            />
+          );
+        })}
+      </GroupedSection>
 
-      <Section title="기본 과세 구분">
+      <GroupedSection
+        title="세부 기능"
+        footer="만기 주기·금리까지 직접 따져 보고 싶을 때 쓰는 기능이에요."
+      >
+        <ListRow title="풍차 계산기" subtitle="만기 주기·예상 이자 계산" chevron onPress={() => router.push('/calculator')} />
+        <ListRow title="금리 비교" subtitle="은행·저축은행 예적금 금리 순위" chevron onPress={() => router.push('/rates')} />
+        <ListRow title="계좌 직접 등록" subtitle="풍차와 상관없이 가입한 계좌 기록" chevron onPress={() => router.push('/add-account')} />
+      </GroupedSection>
+
+      <GroupedSection title="알림">
+        <ListRow title="만기 D-7 알림" right={toggle(settings.notifyD7, (v) => updateSettings({ notifyD7: v }))} />
+        <ListRow title="만기 당일 알림" right={toggle(settings.notifyDday, (v) => updateSettings({ notifyDday: v }))} />
+        <ListRow
+          title="적금 납입일 알림"
+          subtitle="오전 9시"
+          right={toggle(settings.notifyPayday, (v) => updateSettings({ notifyPayday: v }))}
+        />
+      </GroupedSection>
+
+      <GroupedSection title="기본 과세 구분" footer="계좌 등록과 계산기 예상 이자에 쓰여요.">
         {(Object.keys(TAX_TYPE_LABELS) as TaxType[]).map((key) => (
-          <TouchableOpacity
+          <ListRow
             key={key}
-            style={styles.taxRow}
+            title={TAX_TYPE_LABELS[key]}
+            detail={settings.defaultTaxType === key ? '✓' : undefined}
+            detailStyle={styles.check}
             onPress={() => updateSettings({ defaultTaxType: key })}
-          >
-            <Text style={styles.taxLabel}>{TAX_TYPE_LABELS[key]}</Text>
-            {settings.defaultTaxType === key && <Text style={styles.checkmark}>✓</Text>}
-          </TouchableOpacity>
+          />
         ))}
-      </Section>
+      </GroupedSection>
 
-      <Section title="백업">
-        <TouchableOpacity style={styles.backupButton} onPress={handleExport} disabled={busy}>
-          <Text style={styles.backupButtonText}>JSON으로 내보내기</Text>
-        </TouchableOpacity>
-        <TouchableOpacity style={styles.backupButton} onPress={handleImport} disabled={busy}>
-          <Text style={styles.backupButtonText}>JSON에서 가져오기</Text>
-        </TouchableOpacity>
-      </Section>
+      <GroupedSection title="백업">
+        <ListRow title="JSON으로 내보내기" tint="primary" onPress={busy ? undefined : handleExport} />
+        <ListRow title="JSON에서 가져오기" tint="primary" onPress={busy ? undefined : handleImport} />
+      </GroupedSection>
+
+      <GroupedSection title="도움말">
+        <ListRow title="풍차돌리기 소개 다시 보기" chevron onPress={() => router.push('/onboarding')} />
+      </GroupedSection>
     </ScrollView>
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
-  return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>{title}</Text>
-      <View style={styles.sectionCard}>{children}</View>
-    </View>
-  );
-}
-
-function ToggleRow({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: boolean;
-  onChange: (v: boolean) => void;
-}) {
-  return (
-    <View style={styles.toggleRow}>
-      <Text style={styles.toggleLabel}>{label}</Text>
-      <Switch value={value} onValueChange={onChange} trackColor={{ true: colors.primary }} />
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
-  screen: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
   content: {
-    padding: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.sm,
     paddingBottom: spacing.xxl * 2,
+    gap: spacing.xl - 4,
   },
-  section: {
-    marginBottom: spacing.lg,
-  },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '700',
-    color: colors.text,
-    marginBottom: spacing.sm,
-  },
-  sectionCard: {
-    backgroundColor: colors.card,
-    borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    overflow: 'hidden',
-  },
-  toggleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  toggleLabel: {
-    fontSize: 14,
-    color: colors.text,
-  },
-  taxRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  taxLabel: {
-    fontSize: 14,
-    color: colors.text,
-  },
-  checkmark: {
-    color: colors.primary,
-    fontWeight: '700',
-  },
-  backupButton: {
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.md,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  backupButtonText: {
-    fontSize: 14,
+  check: {
     color: colors.primary,
     fontWeight: '600',
   },

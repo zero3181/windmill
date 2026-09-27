@@ -1,5 +1,5 @@
 import type { Account } from '../types/account';
-import { selectSummary, selectThisMonth, selectTimeline, withFinancials } from './homeSelectors';
+import { selectSummary, selectThisMonth, selectTimeline, selectUpcoming, selectWindmill, withFinancials } from './homeSelectors';
 
 function makeAccount(overrides: Partial<Account>): Account {
   return {
@@ -84,5 +84,85 @@ describe('selectTimeline', () => {
     const septemberBucket = timeline.find((t) => t.key === '2026-09');
     expect(septemberBucket?.total).toBe(0);
     expect(septemberBucket?.accounts).toHaveLength(0);
+  });
+});
+
+describe('selectWindmill', () => {
+  it('builds one bar per active account of the tab, sorted by start date', () => {
+    const accounts = [
+      makeAccount({ id: 's2', type: 'savings', amount: 100_000, startDate: '2026-02-01', maturityDate: '2027-02-01' }),
+      makeAccount({ id: 's1', type: 'savings', amount: 200_000, startDate: '2026-01-01', maturityDate: '2027-01-01' }),
+      makeAccount({ id: 'd1', type: 'deposit', startDate: '2026-01-01', maturityDate: '2027-01-01' }),
+      makeAccount({ id: 's3', type: 'savings', status: 'closed' }),
+    ];
+    const w = selectWindmill(withFinancials(accounts, '2026-03-01'), 'savings', '2026-03-01');
+
+    expect(w.bars.map((b) => b.item.account.id)).toEqual(['s1', 's2']);
+    expect(w.count).toBe(2);
+    expect(w.maturityMonthCount).toBe(2);
+    // 2026-03-01 기준 s1은 3회(1·2·3월), s2는 2회(2·3월) 납입
+    expect(w.totalPrincipal).toBe(200_000 * 3 + 100_000 * 2);
+    expect(w.rangeStart).toBe('2026-01-01');
+    expect(w.monthCount).toBe(14); // 2026-01 ~ 2027-02
+    expect(w.bars[0].start).toBe(0);
+    expect(w.bars[0].end).toBe(12);
+    expect(w.bars[1].start).toBe(1);
+    expect(w.bars[0].ticks).toHaveLength(11);
+    expect(w.today).toBe(2);
+  });
+
+  it('counts accounts maturing in the same month as one blade', () => {
+    const accounts = [
+      makeAccount({ id: 'a', type: 'savings', startDate: '2026-01-05', maturityDate: '2027-01-05' }),
+      makeAccount({ id: 'b', type: 'savings', startDate: '2026-01-20', maturityDate: '2027-01-20' }),
+      makeAccount({ id: 'c', type: 'savings', startDate: '2026-02-05', maturityDate: '2027-02-05' }),
+    ];
+    const w = selectWindmill(withFinancials(accounts, '2026-03-01'), 'savings', '2026-03-01');
+    expect(w.count).toBe(3);
+    expect(w.maturityMonthCount).toBe(2);
+    expect(w.bars.map((b) => b.bladeIndex)).toEqual([0, 0, 1]);
+  });
+
+  it('places mid-month dates fractionally', () => {
+    const accounts = [
+      makeAccount({ id: 'a', type: 'deposit', startDate: '2026-04-16', termMonths: 6, maturityDate: '2026-10-16' }),
+    ];
+    const w = selectWindmill(withFinancials(accounts, '2026-05-01'), 'deposit', '2026-05-01');
+    expect(w.bars[0].start).toBeCloseTo(15 / 30);
+    expect(w.bars[0].end).toBeCloseTo(6 + 15 / 31);
+  });
+
+  it('still covers today when there are no accounts', () => {
+    const w = selectWindmill([], 'deposit', '2026-09-27');
+    expect(w.bars).toEqual([]);
+    expect(w.monthCount).toBe(1);
+  });
+});
+
+describe('selectUpcoming', () => {
+  const today = '2026-09-27';
+  const accounts = [
+    makeAccount({ id: 'd1', type: 'deposit', startDate: '2025-12-05', maturityDate: '2026-12-05' }),
+    makeAccount({ id: 'd2', type: 'deposit', startDate: '2025-10-10', maturityDate: '2026-10-10' }),
+    makeAccount({ id: 'd0', type: 'deposit', startDate: '2025-09-20', maturityDate: '2026-09-20' }),
+    makeAccount({ id: 's1', type: 'savings', startDate: '2025-10-01', maturityDate: '2026-10-01' }),
+  ];
+
+  it('lists maturities within 30 days of the chosen type, overdue first', () => {
+    const r = selectUpcoming(withFinancials(accounts, today), 'deposit');
+    expect(r.items.map((i) => i.account.id)).toEqual(['d0', 'd2']);
+    expect(r.nextOnly).toBe(false);
+  });
+
+  it('falls back to the single nearest maturity', () => {
+    const later = [makeAccount({ id: 'd1', type: 'deposit', startDate: '2025-12-05', maturityDate: '2026-12-05' })];
+    const r = selectUpcoming(withFinancials(later, today), 'deposit');
+    expect(r.items.map((i) => i.account.id)).toEqual(['d1']);
+    expect(r.nextOnly).toBe(true);
+  });
+
+  it('is empty when there is no account of that type', () => {
+    const depositsOnly = accounts.filter((a) => a.type === 'deposit');
+    expect(selectUpcoming(withFinancials(depositsOnly, today), 'savings')).toEqual({ items: [], nextOnly: false });
   });
 });

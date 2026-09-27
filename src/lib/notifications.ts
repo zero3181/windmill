@@ -16,10 +16,14 @@ Notifications.setNotificationHandler({
   }),
 });
 
-export async function ensureNotificationSetup(): Promise<boolean> {
+/**
+ * 알림 권한을 확인한다. request가 true일 때만 권한 창을 띄운다.
+ * 권한은 계좌를 처음 등록하는 순간에 묻고, 앱 실행 중 재예약할 때는 묻지 않는다.
+ */
+export async function ensureNotificationSetup(request = false): Promise<boolean> {
   const existing = await Notifications.getPermissionsAsync();
   let granted = existing.granted;
-  if (!granted) {
+  if (!granted && request && existing.canAskAgain) {
     const req = await Notifications.requestPermissionsAsync();
     granted = req.granted;
   }
@@ -47,11 +51,13 @@ export async function rescheduleAllNotifications(
 ): Promise<void> {
   await Notifications.cancelAllScheduledNotificationsAsync();
 
+  const active = accounts.filter((a) => a.status === 'active');
+  if (active.length === 0) return;
+
   const granted = await ensureNotificationSetup();
   if (!granted) return;
 
   const today = todayKST();
-  const active = accounts.filter((a) => a.status === 'active');
   const androidChannel = Platform.OS === 'android' ? { channelId: CHANNEL_ID } : {};
 
   for (const account of active) {
@@ -61,7 +67,7 @@ export async function rescheduleAllNotifications(
         await Notifications.scheduleNotificationAsync({
           content: {
             title: `[D-7] ${account.name} 만기가 다가와요`,
-            body: `${account.bank} · 7일 후 만기예요`,
+            body: account.bank ? `${account.bank} · 7일 후 만기예요` : '7일 후 만기예요',
           },
           trigger: {
             type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -77,7 +83,7 @@ export async function rescheduleAllNotifications(
         await Notifications.scheduleNotificationAsync({
           content: {
             title: `[만기일] ${account.name}`,
-            body: `${account.bank} · 오늘이 만기예요. 만기 처리를 진행해보세요.`,
+            body: `${account.bank ? `${account.bank} · ` : ''}오늘이 만기예요. 만기 처리를 진행해보세요.`,
           },
           trigger: {
             type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -96,7 +102,7 @@ export async function rescheduleAllNotifications(
       const day = account.payDay ?? parseISODate(account.startDate).d;
       const content = {
         title: '적금 납입일이에요',
-        body: `${account.name} · ${account.bank} · ${formatWon(account.amount)} 납입일이에요`,
+        body: `${[account.name, account.bank].filter(Boolean).join(' · ')} · ${formatWon(account.amount)} 납입일이에요`,
       };
       if (Platform.OS === 'ios') {
         await Notifications.scheduleNotificationAsync({
