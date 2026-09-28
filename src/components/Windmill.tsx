@@ -9,7 +9,7 @@ const VIEW = 240;
 const VIEW_H = 188;
 const HUB = { x: 120, y: 84 };
 const BLADE_LEN = 72;
-const HUB_R = 9;
+const HUB_R = 10;
 const BLADE_BOX = (BLADE_LEN + 4) * 2;
 
 // 날개 색: 민트 → 블루 → 인디고로 한 바퀴 이어지는 iOS 시스템 액센트 그라데이션.
@@ -73,7 +73,8 @@ export function Windmill({ blades, filled, width }: Props) {
   const spinDeg = spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
   const wiggleDeg = wiggle.interpolate({ inputRange: [-180, 180], outputRange: ['-180deg', '180deg'] });
 
-  const bladePath = blades <= 6 ? sailPath(9, 30, 6) : sailPath(5, 17, 4);
+  // 12날개는 이웃 날개와 겹치지 않을 만큼만 넓힌다.
+  const bladePath = blades <= 6 ? sailPath(33, 13) : sailPath(18, 8, 0.62);
   const box = BLADE_BOX * scale;
 
   return (
@@ -93,8 +94,8 @@ export function Windmill({ blades, filled, width }: Props) {
         </Defs>
         {/* 바닥 그림자 */}
         <Ellipse cx={120} cy={181} rx={30} ry={3.5} fill="#000000" fillOpacity={0.06} />
-        {/* 탑: 날개 바로 아래까지만 오는 짧은 기둥 */}
-        <Path d="M107 180 L115.5 92 Q120 87 124.5 92 L133 180 Q120 182.5 107 180 Z" fill="url(#tower)" />
+        {/* 탑: 아래로 갈수록 부드럽게 넓어지는 짧은 기둥 */}
+        <Path d="M105 180 Q106 119 115.4 91 Q120 84.5 124.6 91 Q134 119 135 180 Q120 184 105 180 Z" fill="url(#tower)" />
       </Svg>
 
       <Animated.View
@@ -135,17 +136,22 @@ export function Windmill({ blades, filled, width }: Props) {
 }
 
 /**
- * 풍차 돛 모양 날개 (위쪽을 향함): 스파(x=0)를 따라 한쪽으로만 펼쳐진 사다리꼴.
- * 허브 쪽 폭 inner에서 끝 폭 outer로 넓어지고, 바깥 모서리는 corner만큼 둥글린다.
+ * 도톰한 돛 모양 날개 (위쪽을 향함): 스파(x=0) 한쪽으로 넓게 펼쳐지고 모서리를 크게 둥글린다.
+ * 끝에서 fullFrom(날개 길이 비율)까지는 폭 width로 꽉 차고, 허브 쪽으로 오며 좁아진다.
+ * 날개가 많으면 fullFrom을 키워 허브 근처에서 이웃 날개와 겹치지 않게 한다.
  */
-function sailPath(inner: number, outer: number, corner: number): string {
+function sailPath(width: number, corner: number, fullFrom = 0.45): string {
   const L = BLADE_LEN;
-  const r0 = HUB_R + 1;
-  const r1 = L * 0.3;
+  const w = width;
+  const r0 = HUB_R + 3;
+  const neck =
+    fullFrom > 0.45
+      ? `Q ${w} ${-L * 0.3} ${w * 0.3} ${-r0 - 3} Q ${w * 0.1} ${-r0} 0 ${-r0} Z`
+      : `Q ${w} ${-r0 - 2.2} ${w * 0.35} ${-r0 - 1} Q ${w * 0.1} ${-r0} 0 ${-r0} Z`;
   return (
     `M 0 ${-r0} L 0 ${-L + corner} Q 0 ${-L} ${corner} ${-L} ` +
-    `L ${outer - corner} ${-L} Q ${outer} ${-L} ${outer} ${-L + corner} ` +
-    `L ${inner} ${-r1} Q ${inner * 0.5} ${-r0 - 2} 0 ${-r0} Z`
+    `L ${w - corner} ${-L} Q ${w} ${-L} ${w} ${-L + corner} ` +
+    `L ${w} ${-L * fullFrom} ${neck}`
   );
 }
 

@@ -64,7 +64,7 @@ export default function AccountDetailScreen() {
   }
 
   function handleCompareRenew() {
-    confirm('만기 처리', '이 계좌를 만기 처리하고, 지금 금리 좋은 상품을 볼까요?', '금리 비교하기', async () => {
+    confirm('만기 처리', '이 계좌를 만기 처리하고, 지금 금리가 높은 상품을 볼까요?', '금리 비교', async () => {
       await closeAccount(account!.id);
       setType(account!.type);
       router.back();
@@ -147,9 +147,9 @@ export default function AccountDetailScreen() {
         </GroupedSection>
 
         <GroupedSection title="금액">
-          <ListRow title={isSavings ? '월 납입액' : '예치 원금'} detail={formatWon(account.amount)} />
+          <ListRow title={isSavings ? '월 납입액' : '예치금'} detail={formatWon(account.amount)} />
           <ListRow title="현재까지 원금" detail={formatWon(financials.currentPrincipal)} />
-          <ListRow title="세후 이자 (예상)" detail={formatWon(financials.afterTaxInterest)} />
+          <ListRow title="예상 이자 (세후)" detail={formatWon(financials.afterTaxInterest)} />
           <ListRow title="과세 구분" detail={TAX_TYPE_LABELS[account.taxType]} />
         </GroupedSection>
 
@@ -161,8 +161,8 @@ export default function AccountDetailScreen() {
 
         {isActive && (
           <GroupedSection title="만기 처리">
-            <ListRow title="지금 금리로 비교해서 재가입" tint="primary" onPress={busy ? undefined : handleCompareRenew} />
-            <ListRow title="같은 조건으로 재가입" tint="primary" onPress={busy ? undefined : handleSameRenew} />
+            <ListRow title="금리 비교하고 다시 가입" tint="primary" onPress={busy ? undefined : handleCompareRenew} />
+            <ListRow title="같은 조건으로 다시 가입" tint="primary" onPress={busy ? undefined : handleSameRenew} />
             <ListRow title="해지 처리" tint="primary" onPress={busy ? undefined : handleClose} />
           </GroupedSection>
         )}

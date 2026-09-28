@@ -3,7 +3,7 @@ import React, { useMemo } from 'react';
 import { StyleSheet, Text } from 'react-native';
 import { AccountForm } from '../components/AccountForm';
 import { Card } from '../components/ui/Grouped';
-import { formatWon } from '../lib/format';
+import { formatManwon } from '../lib/format';
 import { ensureNotificationSetup } from '../lib/notifications';
 import { useAccounts } from '../store/AccountsContext';
 import { colors, spacing } from '../theme';
@@ -51,7 +51,7 @@ export default function NewAccountScreen() {
         initial={prefill}
         knownBanks={knownBanks}
         defaultTaxType={settings.defaultTaxType}
-        submitLabel={step > 0 ? '가입 완료' : '저장'}
+        submitLabel="저장"
         defaultAmounts={defaultAmounts}
         lockedType={step > 0}
         banner={params.from === 'rates' ? '금리 비교에서 고른 상품 정보가 채워졌어요' : undefined}
@@ -61,9 +61,9 @@ export default function NewAccountScreen() {
               <Text style={styles.guideTitle}>은행 앱에서 이 조건으로 가입하세요</Text>
               <Text style={styles.guideBody}>
                 {prefill.termMonths}개월 {unit} · {unit === '적금' ? '월 ' : ''}
-                {formatWon(prefill.amount ?? 0)}
+                {formatManwon(prefill.amount ?? 0)}
               </Text>
-              <Text style={styles.guideHint}>가입했으면 아래 내용을 확인하고 오른쪽 위 ‘가입 완료’를 눌러 주세요.</Text>
+              <Text style={styles.guideHint}>가입한 뒤 아래 내용을 확인하고 저장해 주세요.</Text>
             </Card>
           ) : null
         }

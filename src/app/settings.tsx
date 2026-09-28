@@ -18,7 +18,7 @@ export default function SettingsScreen() {
     try {
       await exportBackup(accounts, rawSettings);
     } catch (e) {
-      Alert.alert('내보내기 실패', e instanceof Error ? e.message : '알 수 없는 오류가 발생했어요');
+      Alert.alert('내보내기 실패', e instanceof Error ? e.message : '잠시 후 다시 시도해 주세요.');
     } finally {
       setBusy(false);
     }
@@ -32,7 +32,7 @@ export default function SettingsScreen() {
 
       Alert.alert(
         '백업 가져오기',
-        `${payload.accounts.length}개 계좌를 가져올까요? 현재 기기의 데이터는 백업 내용으로 대체돼요.`,
+        `${payload.accounts.length}개 계좌를 가져올까요? 지금 이 기기에 있는 기록은 백업 내용으로 바뀌어요.`,
         [
           { text: '취소', style: 'cancel' },
           {
@@ -46,7 +46,7 @@ export default function SettingsScreen() {
         ]
       );
     } catch (e) {
-      Alert.alert('가져오기 실패', e instanceof Error ? e.message : '올바르지 않은 백업 파일이에요');
+      Alert.alert('가져오기 실패', e instanceof Error ? e.message : '풍차돌리기 백업 파일인지 확인해 주세요.');
     } finally {
       setBusy(false);
     }
@@ -84,8 +84,8 @@ export default function SettingsScreen() {
         footer="만기 주기·금리까지 직접 따져 보고 싶을 때 쓰는 기능이에요."
       >
         <ListRow title="풍차 계산기" subtitle="만기 주기·예상 이자 계산" chevron onPress={() => router.push('/calculator')} />
-        <ListRow title="금리 비교" subtitle="은행·저축은행 예적금 금리 순위" chevron onPress={() => router.push('/rates')} />
-        <ListRow title="계좌 직접 등록" subtitle="풍차와 상관없이 가입한 계좌 기록" chevron onPress={() => router.push('/add-account')} />
+        <ListRow title="금리 비교" subtitle="은행·저축은행 예·적금 금리 순위" chevron onPress={() => router.push('/rates')} />
+        <ListRow title="계좌 직접 등록" subtitle="풍차와 상관없이 가입한 계좌 등록" chevron onPress={() => router.push('/add-account')} />
       </GroupedSection>
 
       <GroupedSection title="알림">
@@ -111,8 +111,8 @@ export default function SettingsScreen() {
       </GroupedSection>
 
       <GroupedSection title="백업">
-        <ListRow title="JSON으로 내보내기" tint="primary" onPress={busy ? undefined : handleExport} />
-        <ListRow title="JSON에서 가져오기" tint="primary" onPress={busy ? undefined : handleImport} />
+        <ListRow title="백업 파일 내보내기" tint="primary" onPress={busy ? undefined : handleExport} />
+        <ListRow title="백업 파일에서 가져오기" tint="primary" onPress={busy ? undefined : handleImport} />
       </GroupedSection>
 
       <GroupedSection title="도움말">

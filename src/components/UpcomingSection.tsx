@@ -15,7 +15,7 @@ export function UpcomingSection({ upcoming, interactive = true }: { upcoming: Up
   return (
     <GroupedSection
       title="다가오는 만기"
-      footer={upcoming.nextOnly ? '30일 안에 만기되는 계좌는 없어요.' : '만기가 되면 재가입할지 해지할지 정해 주세요.'}
+      footer={upcoming.nextOnly ? '30일 안에 만기되는 계좌가 없어서, 가장 가까운 만기를 보여 드려요.' : '만기가 되면 재가입할지 해지할지 정해 주세요.'}
     >
       {upcoming.items.map(({ account, financials }) => {
         const overdue = financials.daysToMaturity < 0;

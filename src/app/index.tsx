@@ -1,6 +1,6 @@
 import { Stack, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AccountListItem } from '../components/AccountListItem';
 import { EmptyState } from '../components/EmptyState';
 import { PrimaryButton, Segmented } from '../components/ui/Controls';
@@ -11,6 +11,7 @@ import { WindmillChecklist } from '../components/WindmillChecklist';
 import { todayKST } from '../lib/calc';
 import { buildChecklist, type ChecklistStep } from '../lib/checklist';
 import { selectUpcoming, selectWindmill, withFinancials } from '../lib/homeSelectors';
+import { ensureNotificationSetup } from '../lib/notifications';
 import { useAccounts } from '../store/AccountsContext';
 import { useWindmillType } from '../store/WindmillTypeContext';
 import { colors, spacing } from '../theme';
@@ -68,6 +69,15 @@ export default function HomeScreen() {
     router.push({ pathname: '/add-account', params: { prefill: JSON.stringify(prefill), step: String(step.index + 1) } });
   }
 
+  async function handleToggleReminder() {
+    const next = !settings.stepReminder[type];
+    if (next && !(await ensureNotificationSetup(true).catch(() => false))) {
+      Alert.alert('알림이 꺼져 있어요', '설정 앱의 풍차돌리기 > 알림에서 허용해 주세요.');
+      return;
+    }
+    await updateSettings({ stepReminder: { ...settings.stepReminder, [type]: next } });
+  }
+
   function handleFindProducts(step: ChecklistStep) {
     router.push({
       pathname: '/rates',
@@ -110,7 +120,7 @@ export default function HomeScreen() {
             계좌 직접 등록
           </Stack.Toolbar.MenuAction>
           <Stack.Toolbar.MenuAction icon="gearshape" onPress={() => router.push('/settings')}>
-            설정 · 세부 기능
+            설정
           </Stack.Toolbar.MenuAction>
         </Stack.Toolbar.Menu>
       </Stack.Toolbar>
@@ -150,13 +160,15 @@ export default function HomeScreen() {
                 onJoin={handleJoin}
                 onFindProducts={handleFindProducts}
                 onOpenAccount={(id) => router.push(`/account/${id}`)}
+                reminderOn={settings.stepReminder[type]}
+                onToggleReminder={handleToggleReminder}
               />
             ) : (
               <Card style={styles.goalPrompt}>
                 <Text style={styles.goalTitle}>할 일 안내 받기</Text>
-                <Text style={styles.goalBody}>날개 수와 금액을 정하면 매달 무엇을 가입할지 알려드려요.</Text>
+                <Text style={styles.goalBody}>날개 수와 금액을 정하면 매달 무엇을 가입하면 되는지 알려드려요.</Text>
                 <PrimaryButton
-                  label="풍차 목표 정하기"
+                  label="풍차 만들기"
                   onPress={() => router.push({ pathname: '/create-windmill', params: { type } })}
                 />
               </Card>

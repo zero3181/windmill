@@ -1,6 +1,6 @@
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import { Segmented } from '../components/ui/Controls';
 import { InputRow } from '../components/ui/FormRows';
 import { GroupedSection, ListRow } from '../components/ui/Grouped';
@@ -11,6 +11,7 @@ import { useAccounts } from '../store/AccountsContext';
 import { useWindmillType } from '../store/WindmillTypeContext';
 import { spacing } from '../theme';
 import type { AccountType } from '../types/account';
+import { FormScrollView } from '../components/ui/FormScrollView';
 
 const UNIT: Record<AccountType, string> = { savings: '적금', deposit: '예금' };
 
@@ -44,7 +45,7 @@ export default function CreateWindmillScreen() {
 
   async function handleSave() {
     if (perAccount <= 0) {
-      Alert.alert('금액을 입력해 주세요', `${type === 'savings' ? '매달 저금할 금액' : '총 저금액'}을 알려주세요.`);
+      Alert.alert('금액을 입력해 주세요', `${type === 'savings' ? '매달 저금할 금액' : '총 저금액'}을 알려 주세요.`);
       return;
     }
     await updateSettings({
@@ -56,7 +57,7 @@ export default function CreateWindmillScreen() {
   }
 
   function handleRemove() {
-    Alert.alert('풍차 지우기', '할 일 목록만 지워지고, 등록한 계좌는 그대로 남아요.', [
+    Alert.alert('풍차 지우기', '할 일만 지워지고, 등록한 계좌는 그대로 남아요.', [
       { text: '취소', style: 'cancel' },
       {
         text: '지우기',
@@ -81,69 +82,63 @@ export default function CreateWindmillScreen() {
         </Stack.Toolbar.Button>
       </Stack.Toolbar>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          contentContainerStyle={styles.content}
-          keyboardShouldPersistTaps="handled"
-        >
-          <View style={styles.art}>
-            <Windmill blades={blades} filled={blades} width={180} />
-          </View>
+      <FormScrollView contentContainerStyle={styles.content}>
+        <View style={styles.art}>
+          <Windmill blades={blades} filled={blades} width={180} />
+        </View>
 
-          {!editing && (
-            <GroupedSection
-              title="어떤 풍차를 만들까요?"
-              footer={
-                type === 'savings'
-                  ? '적금 풍차: 월급에서 매달 조금씩 모을 때 좋아요.'
-                  : '예금 풍차: 모아둔 목돈을 나눠 넣고, 필요할 때 일부만 꺼내 쓸 수 있어요.'
-              }
-            >
-              <View style={styles.segmentRow}>
-                <Segmented
-                  options={[
-                    { value: 'savings', label: '적금 풍차' },
-                    { value: 'deposit', label: '예금 풍차' },
-                  ]}
-                  value={type}
-                  onChange={setType}
-                />
-              </View>
-            </GroupedSection>
-          )}
-
+        {!editing && (
           <GroupedSection
-            title="날개 수"
-            footer={`매달 ${unit}을 하나씩 ${blades}번 가입해요. ${unit} 하나의 기간은 ${blades}개월이라, 풍차가 다 돌면 매달 만기가 돌아와요.`}
+            title="어떤 풍차를 만들까요?"
+            footer={
+              type === 'savings'
+                ? '적금 풍차: 월급에서 매달 조금씩 모을 때 좋아요.'
+                : '예금 풍차: 모아둔 목돈을 나눠 넣고, 필요할 때 일부만 꺼내 쓸 수 있어요.'
+            }
           >
             <View style={styles.segmentRow}>
               <Segmented
-                options={WINDMILL_SIZES.map((s) => ({ value: String(s), label: `${s}개` }))}
-                value={String(blades)}
-                onChange={(v) => setBlades(Number(v) as WindmillSize)}
+                options={[
+                  { value: 'savings', label: '적금 풍차' },
+                  { value: 'deposit', label: '예금 풍차' },
+                ]}
+                value={type}
+                onChange={setType}
               />
             </View>
           </GroupedSection>
+        )}
 
-          <GroupedSection title="금액" footer={amountFooter}>
-            <InputRow
-              title={type === 'savings' ? '매달 저금할 금액' : '총 저금액'}
-              value={total > 0 ? total.toLocaleString('ko-KR') : ''}
-              onChangeText={(t) => setTotal(parseAmount(t))}
-              keyboardType="number-pad"
-              placeholder={type === 'savings' ? '1,200,000' : '12,000,000'}
-              suffix="원"
+        <GroupedSection
+          title="날개 수"
+          footer={`매달 ${unit}을 하나씩 ${blades}번 가입해요. ${unit} 하나의 기간은 ${blades}개월이라, 풍차가 다 돌면 매달 만기가 돌아와요.`}
+        >
+          <View style={styles.segmentRow}>
+            <Segmented
+              options={WINDMILL_SIZES.map((s) => ({ value: String(s), label: `${s}개` }))}
+              value={String(blades)}
+              onChange={(v) => setBlades(Number(v) as WindmillSize)}
             />
-          </GroupedSection>
+          </View>
+        </GroupedSection>
 
-          {editing && (
-            <GroupedSection>
-              <ListRow title="풍차 지우기" tint="destructive" onPress={handleRemove} />
-            </GroupedSection>
-          )}
-        </ScrollView>
-      </KeyboardAvoidingView>
+        <GroupedSection title="금액" footer={amountFooter}>
+          <InputRow
+            title={type === 'savings' ? '매달 저금할 금액' : '총 저금액'}
+            value={total > 0 ? total.toLocaleString('ko-KR') : ''}
+            onChangeText={(t) => setTotal(parseAmount(t))}
+            keyboardType="number-pad"
+            placeholder={type === 'savings' ? '1,200,000' : '12,000,000'}
+            suffix="원"
+          />
+        </GroupedSection>
+
+        {editing && (
+          <GroupedSection>
+            <ListRow title="풍차 지우기" tint="destructive" onPress={handleRemove} />
+          </GroupedSection>
+        )}
+      </FormScrollView>
     </>
   );
 }

@@ -2,7 +2,8 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import type { Account } from '../types/account';
 import { addDays, compareISODates, parseISODate, todayKST } from './calc';
-import { formatWon } from './format';
+import { buildChecklist } from './checklist';
+import { formatManwon } from './format';
 import type { AppSettings } from './settings';
 
 const CHANNEL_ID = 'pungcha-default';
@@ -60,14 +61,34 @@ export async function rescheduleAllNotifications(
   const today = todayKST();
   const androidChannel = Platform.OS === 'android' ? { channelId: CHANNEL_ID } : {};
 
+  // 할 일 목록: 다음 가입 달이 되면 그달 1일 오전 9시에 알린다.
+  for (const type of ['savings', 'deposit'] as const) {
+    const goal = settings.goals[type];
+    if (!goal || !settings.stepReminder[type]) continue;
+    const next = buildChecklist(goal, type, accounts, today).steps.find((s) => s.status === 'scheduled');
+    if (!next) continue;
+    const unit = type === 'savings' ? '적금' : '예금';
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: `${next.index + 1}번째 ${unit}을 가입할 차례예요`,
+        body: `이번 달에 ${unit}을 하나 가입하고 풍차 날개를 채워 보세요.`,
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: dateAt9am(next.month),
+        ...androidChannel,
+      },
+    });
+  }
+
   for (const account of active) {
     if (settings.notifyD7) {
       const d7Date = addDays(account.maturityDate, -7);
       if (compareISODates(d7Date, today) >= 0) {
         await Notifications.scheduleNotificationAsync({
           content: {
-            title: `[D-7] ${account.name} 만기가 다가와요`,
-            body: account.bank ? `${account.bank} · 7일 후 만기예요` : '7일 후 만기예요',
+            title: `${account.name} 만기가 7일 남았어요`,
+            body: '만기가 되면 다시 가입할지 해지할지 정해 주세요.',
           },
           trigger: {
             type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -82,8 +103,8 @@ export async function rescheduleAllNotifications(
       if (compareISODates(account.maturityDate, today) >= 0) {
         await Notifications.scheduleNotificationAsync({
           content: {
-            title: `[만기일] ${account.name}`,
-            body: `${account.bank ? `${account.bank} · ` : ''}오늘이 만기예요. 만기 처리를 진행해보세요.`,
+            title: `오늘 ${account.name} 만기예요`,
+            body: '다시 가입할지 해지할지 정해 주세요.',
           },
           trigger: {
             type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -101,8 +122,8 @@ export async function rescheduleAllNotifications(
     ) {
       const day = account.payDay ?? parseISODate(account.startDate).d;
       const content = {
-        title: '적금 납입일이에요',
-        body: `${[account.name, account.bank].filter(Boolean).join(' · ')} · ${formatWon(account.amount)} 납입일이에요`,
+        title: '오늘은 적금 납입일이에요',
+        body: `${[account.name, account.bank].filter(Boolean).join(' · ')} · ${formatManwon(account.amount)}`,
       };
       if (Platform.OS === 'ios') {
         await Notifications.scheduleNotificationAsync({

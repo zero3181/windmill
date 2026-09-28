@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import { PrimaryButton, Segmented } from '../components/ui/Controls';
 import { InputRow, PickerRow } from '../components/ui/FormRows';
 import { Card, GroupedSection, ListRow } from '../components/ui/Grouped';
@@ -11,6 +11,7 @@ import { useAccounts } from '../store/AccountsContext';
 import { useWindmillType } from '../store/WindmillTypeContext';
 import { colors, spacing } from '../theme';
 import { TAX_TYPE_LABELS, type AccountType } from '../types/account';
+import { FormScrollView } from '../components/ui/FormScrollView';
 
 const TERM_OPTIONS = [6, 12];
 
@@ -82,127 +83,121 @@ export default function PlanScreen() {
   const toggle = (picker: Exclude<OpenPicker, null>) => () => setOpenPicker((cur) => (cur === picker ? null : picker));
 
   return (
-    <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={styles.content}
-        keyboardShouldPersistTaps="handled"
-      >
-        <Segmented
-          options={[
-            { value: 'savings', label: '적금 풍차' },
-            { value: 'deposit', label: '예금 풍차' },
-          ]}
-          value={type}
-          onChange={setType}
+    <FormScrollView contentContainerStyle={styles.content}>
+      <Segmented
+        options={[
+          { value: 'savings', label: '적금 풍차' },
+          { value: 'deposit', label: '예금 풍차' },
+        ]}
+        value={type}
+        onChange={setType}
+      />
+
+      <GroupedSection title="조건">
+        <PickerRow
+          title="가입 기간"
+          options={TERM_OPTIONS.map((t) => ({ value: t, label: `${t}개월` }))}
+          value={termMonths}
+          onChange={handleTermChange}
+          open={openPicker === 'term'}
+          onToggle={toggle('term')}
         />
+        <PickerRow
+          title="만기 주기"
+          options={options.map((d) => ({ value: d, label: intervalLabel(d) }))}
+          value={intervalMonths}
+          onChange={setIntervalMonths}
+          open={openPicker === 'interval'}
+          onToggle={toggle('interval')}
+        />
+        <PickerRow
+          title="계좌 개수"
+          options={[...options].reverse().map((n) => ({ value: n, label: `${n}개` }))}
+          value={count}
+          onChange={(n) => setIntervalMonths(termMonths / n)}
+          open={openPicker === 'count'}
+          onToggle={toggle('count')}
+        />
+      </GroupedSection>
 
-        <GroupedSection title="조건">
-          <PickerRow
-            title="가입 기간"
-            options={TERM_OPTIONS.map((t) => ({ value: t, label: `${t}개월` }))}
-            value={termMonths}
-            onChange={handleTermChange}
-            open={openPicker === 'term'}
-            onToggle={toggle('term')}
-          />
-          <PickerRow
-            title="만기 주기"
-            options={options.map((d) => ({ value: d, label: intervalLabel(d) }))}
-            value={intervalMonths}
-            onChange={setIntervalMonths}
-            open={openPicker === 'interval'}
-            onToggle={toggle('interval')}
-          />
-          <PickerRow
-            title="계좌 개수"
-            options={[...options].reverse().map((n) => ({ value: n, label: `${n}개` }))}
-            value={count}
-            onChange={(n) => setIntervalMonths(termMonths / n)}
-            open={openPicker === 'count'}
-            onToggle={toggle('count')}
-          />
-        </GroupedSection>
+      <GroupedSection
+        title="금액"
+        footer={
+          remainder > 0
+            ? `${count}개로 나누어 떨어지지 않아 계좌당 ${formatWon(perAccount)}으로 계산했어요 (남는 금액 ${formatWon(remainder)})`
+            : '총액이나 계좌당 금액 중 하나를 입력하면 나머지가 계산돼요.'
+        }
+      >
+        <InputRow
+          title={labels.total}
+          value={formatInput(amountBasis === 'total' ? amount : plan.total)}
+          onChangeText={(t) => {
+            setAmount(parseAmount(t));
+            setAmountBasis('total');
+          }}
+          keyboardType="number-pad"
+          placeholder="0"
+          suffix="원"
+          highlighted={amountBasis === 'total'}
+        />
+        <InputRow
+          title={labels.per}
+          value={formatInput(perAccount)}
+          onChangeText={(t) => {
+            setAmount(parseAmount(t));
+            setAmountBasis('per');
+          }}
+          keyboardType="number-pad"
+          placeholder="0"
+          suffix="원"
+          highlighted={amountBasis === 'per'}
+        />
+        <InputRow
+          title="예상 금리"
+          value={rateText}
+          onChangeText={setRateText}
+          keyboardType="decimal-pad"
+          placeholder="3.5"
+          suffix="%"
+        />
+      </GroupedSection>
 
-        <GroupedSection
-          title="금액"
-          footer={
-            remainder > 0
-              ? `${count}개로 나누어 떨어지지 않아 계좌당 ${formatWon(perAccount)}으로 계산했어요 (남는 금액 ${formatWon(remainder)})`
-              : '총액이나 계좌당 금액 중 하나를 입력하면 나머지가 계산돼요.'
-          }
-        >
-          <InputRow
-            title={labels.total}
-            value={formatInput(amountBasis === 'total' ? amount : plan.total)}
-            onChangeText={(t) => {
-              setAmount(parseAmount(t));
-              setAmountBasis('total');
-            }}
-            keyboardType="number-pad"
-            placeholder="0"
-            suffix="원"
-            highlighted={amountBasis === 'total'}
-          />
-          <InputRow
-            title={labels.per}
-            value={formatInput(perAccount)}
-            onChangeText={(t) => {
-              setAmount(parseAmount(t));
-              setAmountBasis('per');
-            }}
-            keyboardType="number-pad"
-            placeholder="0"
-            suffix="원"
-            highlighted={amountBasis === 'per'}
-          />
-          <InputRow
-            title="예상 금리"
-            value={rateText}
-            onChangeText={setRateText}
-            keyboardType="decimal-pad"
-            placeholder="3.5"
-            suffix="%"
-          />
-        </GroupedSection>
+      {perAccount > 0 && (
+        <>
+          <Card style={styles.result}>
+            <Text style={styles.headline}>
+              {formatManwon(perAccount)}짜리 {termMonths}개월 {labels.unit}을{'\n'}
+              {intervalLabel(intervalMonths)} 하나씩, 총 {count}개 가입
+            </Text>
+            <Text style={styles.body}>
+              {type === 'savings'
+                ? `납입액은 첫 달 ${formatManwon(perAccount)}에서 ${intervalLabel(intervalMonths)} 늘어나 ${plan.fullFromMonth}개월째부터 매달 ${formatManwon(plan.total)}이 돼요.`
+                : `${intervalLabel(intervalMonths)} ${formatManwon(perAccount)}씩 예치해 총 ${formatManwon(plan.total)}이 필요해요.`}
+            </Text>
+            <View style={styles.divider} />
+            <KV label="첫 만기" value={formatMonth(plan.maturities[0])} />
+            <KV label="계좌 하나 만기 수령액 (세후)" value={formatWon(plan.payoutPerAccount)} strong />
+            <KV label={`${count}개 세후 이자 합계`} value={formatWon(plan.totalAfterTaxInterest)} />
+          </Card>
 
-        {perAccount > 0 && (
-          <>
-            <Card style={styles.result}>
-              <Text style={styles.headline}>
-                {formatManwon(perAccount)}짜리 {termMonths}개월 {labels.unit}을{'\n'}
-                {intervalLabel(intervalMonths)} 하나씩, 총 {count}개 가입
-              </Text>
-              <Text style={styles.body}>
-                {type === 'savings'
-                  ? `납입액은 첫 달 ${formatManwon(perAccount)}에서 ${intervalLabel(intervalMonths)} 늘어나 ${plan.fullFromMonth}개월째부터 매달 ${formatManwon(plan.total)}이 돼요.`
-                  : `${intervalLabel(intervalMonths)} ${formatManwon(perAccount)}씩 예치해 총 ${formatManwon(plan.total)}이 필요해요.`}
-              </Text>
-              <View style={styles.divider} />
-              <KV label="첫 만기" value={formatMonth(plan.maturities[0])} />
-              <KV label="만기 1회 수령액 (세후)" value={formatWon(plan.payoutPerAccount)} strong />
-              <KV label={`${count}개 세후 이자 합계`} value={formatWon(plan.totalAfterTaxInterest)} />
-            </Card>
+          <PrimaryButton
+            label={`추천 상품 ${count}개 보기`}
+            onPress={() =>
+              router.push({ pathname: '/rates', params: { term: String(termMonths), count: String(count) } })
+            }
+          />
 
-            <PrimaryButton
-              label={`추천 상품 ${count}개 보기`}
-              onPress={() =>
-                router.push({ pathname: '/rates', params: { term: String(termMonths), count: String(count) } })
-              }
-            />
-
-            <GroupedSection
-              title="가입 일정"
-              footer={`단리, ${TAX_TYPE_LABELS[settings.defaultTaxType]} 기준 예상치예요. 실제 이자는 상품 조건에 따라 달라요.`}
-            >
-              {plan.openings.map((d, i) => (
-                <ListRow key={d} title={`${i + 1}번째 · ${formatMonth(d)} 가입`} detail={`${formatMonth(plan.maturities[i])} 만기`} />
-              ))}
-            </GroupedSection>
-          </>
-        )}
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <GroupedSection
+            title="가입 일정"
+            footer={`단리, ${TAX_TYPE_LABELS[settings.defaultTaxType]} 기준 예상치예요. 실제 이자는 상품 조건에 따라 달라요.`}
+          >
+            {plan.openings.map((d, i) => (
+              <ListRow key={d} title={`${i + 1}번째 · ${formatMonth(d)} 가입`} detail={`${formatMonth(plan.maturities[i])} 만기`} />
+            ))}
+          </GroupedSection>
+        </>
+      )}
+    </FormScrollView>
   );
 }
 

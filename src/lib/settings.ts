@@ -22,6 +22,8 @@ export interface AppSettings {
   windmillSize: Record<AccountType, WindmillSize>;
   /** 적금 풍차 / 예금 풍차 각각의 목표 (아직 만들지 않았으면 없음) */
   goals: Partial<Record<AccountType, WindmillGoal>>;
+  /** 할 일 목록의 다음 가입 달이 되면 알려줄지 (적금 풍차 / 예금 풍차 각각) */
+  stepReminder: Record<AccountType, boolean>;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -32,6 +34,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   onboardingDone: false,
   windmillSize: { savings: 12, deposit: 12 },
   goals: {},
+  stepReminder: { savings: false, deposit: false },
 };
 
 export function goalSettingKey(type: AccountType): string {
@@ -71,6 +74,10 @@ export function parseSettings(raw: Record<string, string>): AppSettings {
     goals: {
       savings: parseGoal(raw[goalSettingKey('savings')]),
       deposit: parseGoal(raw[goalSettingKey('deposit')]),
+    },
+    stepReminder: {
+      savings: raw['stepReminder.savings'] === '1',
+      deposit: raw['stepReminder.deposit'] === '1',
     },
   };
 }

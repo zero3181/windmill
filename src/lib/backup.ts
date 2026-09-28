@@ -31,7 +31,7 @@ export async function exportBackup(
 
   const canShare = await Sharing.isAvailableAsync();
   if (!canShare) {
-    throw new Error('이 기기에서는 파일 공유를 사용할 수 없어요');
+    throw new Error('이 기기에서는 파일을 공유할 수 없어요.');
   }
   await Sharing.shareAsync(file.uri, {
     mimeType: 'application/json',
@@ -77,7 +77,7 @@ export async function pickAndParseBackup(): Promise<BackupPayload | null> {
   try {
     parsed = JSON.parse(raw);
   } catch {
-    throw new Error('올바른 JSON 파일이 아니에요');
+    throw new Error('백업 파일을 읽지 못했어요. 풍차돌리기에서 내보낸 파일인지 확인해 주세요.');
   }
 
   if (
@@ -85,12 +85,12 @@ export async function pickAndParseBackup(): Promise<BackupPayload | null> {
     typeof parsed !== 'object' ||
     !Array.isArray((parsed as BackupPayload).accounts)
   ) {
-    throw new Error('백업 파일 형식이 올바르지 않아요');
+    throw new Error('백업 파일을 읽지 못했어요. 풍차돌리기에서 내보낸 파일인지 확인해 주세요.');
   }
 
   const payload = parsed as BackupPayload;
   if (!payload.accounts.every(isValidAccount)) {
-    throw new Error('계좌 데이터 형식이 올바르지 않아요');
+    throw new Error('백업 파일 속 계좌 정보를 읽지 못했어요.');
   }
 
   return {

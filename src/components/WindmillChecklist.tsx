@@ -2,7 +2,7 @@ import { SymbolView, type SFSymbol } from 'expo-symbols';
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Checklist, ChecklistStep } from '../lib/checklist';
-import { formatManwon, formatMonth } from '../lib/format';
+import { formatDateShort, formatManwon, formatMonth } from '../lib/format';
 import { colors, radius, spacing } from '../theme';
 import type { AccountType } from '../types/account';
 import { Chevron } from './ui/Grouped';
@@ -16,12 +16,24 @@ interface Props {
   /** 이 단계에 맞는 금리 높은 상품 보기 */
   onFindProducts: (step: ChecklistStep) => void;
   onOpenAccount: (accountId: string) => void;
+  /** 다음 가입 달이 되면 알림을 받을지 */
+  reminderOn: boolean;
+  onToggleReminder: () => void;
 }
 
 const UNIT: Record<AccountType, string> = { savings: '적금', deposit: '예금' };
 
 /** 풍차를 채우는 할 일 목록. 지금 할 일 하나만 활성화하고, 그다음 단계들은 흐리게 보여 준다. */
-export function WindmillChecklist({ checklist, type, today, onJoin, onFindProducts, onOpenAccount }: Props) {
+export function WindmillChecklist({
+  checklist,
+  type,
+  today,
+  onJoin,
+  onFindProducts,
+  onOpenAccount,
+  reminderOn,
+  onToggleReminder,
+}: Props) {
   const { steps, perAccount, termMonths, doneCount, complete } = checklist;
   const [showDone, setShowDone] = useState(false);
   const unit = UNIT[type];
@@ -112,6 +124,22 @@ export function WindmillChecklist({ checklist, type, today, onJoin, onFindProduc
                     {outlay}
                   </Text>
                   <Text style={styles.note}>이번 달에 또 가입하면 만기가 같은 달에 겹쳐요.</Text>
+                  <Pressable
+                    style={[styles.reminder, reminderOn && styles.reminderOn]}
+                    onPress={onToggleReminder}
+                    accessibilityRole="switch"
+                    accessibilityState={{ checked: reminderOn }}
+                  >
+                    <SymbolView
+                      name={reminderOn ? 'bell.fill' : 'bell'}
+                      size={15}
+                      tintColor={reminderOn ? '#FFFFFF' : colors.primary}
+                      fallback={null}
+                    />
+                    <Text style={[styles.reminderText, reminderOn && styles.reminderTextOn]}>
+                      {reminderOn ? `${formatDateShort(step.month)}에 알려드릴게요` : `${formatDateShort(step.month)}에 알림 받기`}
+                    </Text>
+                  </Pressable>
                 </View>
               </View>
             );
@@ -288,6 +316,28 @@ const styles = StyleSheet.create({
   linkText: {
     fontSize: 15,
     color: colors.primary,
+  },
+  reminder: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    gap: 6,
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 7,
+    borderRadius: radius.full,
+    backgroundColor: colors.primarySoft,
+  },
+  reminderOn: {
+    backgroundColor: colors.primary,
+  },
+  reminderText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: colors.primary,
+  },
+  reminderTextOn: {
+    color: '#FFFFFF',
   },
   footer: {
     fontSize: 13,

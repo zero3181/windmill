@@ -47,7 +47,7 @@ export default function RatesScreen() {
           setErrors((prev) => ({ ...prev, [type]: undefined }));
         },
         (e: unknown) => {
-          const message = e instanceof Error ? e.message : '금리 정보를 불러오지 못했어요';
+          const message = e instanceof Error ? e.message : '금리 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.';
           setErrors((prev) => ({ ...prev, [type]: message }));
         }
       ),
@@ -128,7 +128,7 @@ export default function RatesScreen() {
           ))}
         </View>
         <View style={styles.chips}>
-          <Chip label={`${openOnly ? '✓ ' : ''}가입조건 없음`} selected={openOnly} onPress={() => setOpenOnly((v) => !v)} />
+          <Chip label={`${openOnly ? '✓ ' : ''}가입 조건 없음`} selected={openOnly} onPress={() => setOpenOnly((v) => !v)} />
           <Chip label={`${onlineOnly ? '✓ ' : ''}비대면 전용`} selected={onlineOnly} onPress={() => setOnlineOnly((v) => !v)} />
           {myCompanies.length > 0 && (
             <Chip label={`${excludeMine ? '✓ ' : ''}가입한 곳 제외`} selected={excludeMine} onPress={() => setExcludeMine((v) => !v)} />
@@ -148,7 +148,7 @@ export default function RatesScreen() {
       ) : !products ? (
         <View style={styles.center}>
           <ActivityIndicator />
-          <Text style={styles.loadingText}>은행·저축은행 금리를 불러오는 중...</Text>
+          <Text style={styles.loadingText}>은행·저축은행 금리를 불러오고 있어요</Text>
         </View>
       ) : ranked.length === 0 ? (
         <Text style={styles.empty}>조건에 맞는 상품이 없어요</Text>
@@ -211,7 +211,7 @@ function ProductRow({
             <Detail label="우대 조건" value={p.specialCondition} />
           )}
           {p.note && !/^(없음|해당없음|-|\.)$/.test(p.note) && <Detail label="참고" value={p.note} />}
-          <PrimaryButton label="이 상품으로 계좌 등록" onPress={onRegister} />
+          <PrimaryButton label="이 상품으로 등록" onPress={onRegister} />
         </View>
       )}
     </View>

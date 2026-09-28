@@ -1,12 +1,13 @@
 import { Stack, useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { computeMaturityDate, parseISODate, todayKST } from '../lib/calc';
 import { colors, radius, spacing } from '../theme';
 import { TAX_TYPE_LABELS, type Account, type AccountType, type NewAccountInput, type TaxType } from '../types/account';
 import { Segmented } from './ui/Controls';
 import { DateRow, InputRow } from './ui/FormRows';
 import { Chevron, GroupedSection, ListRow } from './ui/Grouped';
+import { FormScrollView } from './ui/FormScrollView';
 
 interface Props {
   initial?: Partial<Account>;
@@ -105,13 +106,13 @@ export function AccountForm({
 
   function validate(): string | null {
     const amount = Number(amountText.replace(/,/g, ''));
-    if (!amount || amount <= 0) return '금액을 입력해주세요';
+    if (!amount || amount <= 0) return '금액을 입력해 주세요';
     const rate = Number(rateText || 0);
-    if (isNaN(rate) || rate < 0) return '금리를 숫자로 입력해주세요';
-    if (!termMonths || termMonths <= 0) return '가입 기간을 입력해주세요';
+    if (isNaN(rate) || rate < 0) return '금리를 숫자로 입력해 주세요';
+    if (!termMonths || termMonths <= 0) return '가입 기간을 골라 주세요';
     if (type === 'savings') {
       const payDay = Number(payDayText);
-      if (!payDay || payDay < 1 || payDay > 31) return '납입일은 1~31 사이로 입력해주세요';
+      if (!payDay || payDay < 1 || payDay > 31) return '납입일은 1~31일 중에서 입력해 주세요';
     }
     return null;
   }
@@ -155,128 +156,122 @@ export function AccountForm({
         </Stack.Toolbar.Button>
       </Stack.Toolbar>
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView
-          contentInsetAdjustmentBehavior="automatic"
-          contentContainerStyle={styles.content}
-          keyboardShouldPersistTaps="handled"
-        >
-          {banner && (
-            <View style={styles.banner}>
-              <Text style={styles.bannerText}>{banner}</Text>
-            </View>
-          )}
-          {error && (
-            <View style={[styles.banner, styles.errorBanner]}>
-              <Text style={[styles.bannerText, styles.errorText]}>{error}</Text>
-            </View>
-          )}
+      <FormScrollView contentContainerStyle={styles.content}>
+        {banner && (
+          <View style={styles.banner}>
+            <Text style={styles.bannerText}>{banner}</Text>
+          </View>
+        )}
+        {error && (
+          <View style={[styles.banner, styles.errorBanner]}>
+            <Text style={[styles.bannerText, styles.errorText]}>{error}</Text>
+          </View>
+        )}
 
-          {header}
+        {header}
 
-          {!lockedType && (
+        {!lockedType && (
+          <Segmented
+            options={[
+              { value: 'savings', label: '적금' },
+              { value: 'deposit', label: '예금' },
+            ]}
+            value={type}
+            onChange={handleTypeChange}
+          />
+        )}
+
+        <GroupedSection>
+          <InputRow
+            title={type === 'deposit' ? '예치금' : '월 납입액'}
+            value={amountText}
+            onChangeText={(t) => {
+              setAmountText(formatAmount(Number(t.replace(/[^0-9]/g, ''))));
+              setAmountTouched(true);
+            }}
+            keyboardType="number-pad"
+            placeholder="0"
+            suffix="원"
+          />
+          <DateRow title="가입일" value={startDate} onChange={handleStartDateChange} />
+          <View style={styles.taxRow}>
+            <Text style={styles.taxLabel}>가입 기간</Text>
             <Segmented
-              options={[
-                { value: 'savings', label: '적금' },
-                { value: 'deposit', label: '예금' },
-              ]}
-              value={type}
-              onChange={handleTypeChange}
+              options={termOptions.map((m) => ({ value: String(m), label: `${m}개월` }))}
+              value={String(termMonths)}
+              onChange={(v) => handleTermChange(Number(v))}
             />
-          )}
-
-          <GroupedSection>
-            <InputRow
-              title={type === 'deposit' ? '예치 원금' : '월 납입액'}
-              value={amountText}
-              onChangeText={(t) => {
-                setAmountText(formatAmount(Number(t.replace(/[^0-9]/g, ''))));
-                setAmountTouched(true);
-              }}
-              keyboardType="number-pad"
-              placeholder="0"
-              suffix="원"
-            />
-            <DateRow title="가입일" value={startDate} onChange={handleStartDateChange} />
-            <View style={styles.taxRow}>
-              <Text style={styles.taxLabel}>가입 기간</Text>
-              <Segmented
-                options={termOptions.map((m) => ({ value: String(m), label: `${m}개월` }))}
-                value={String(termMonths)}
-                onChange={(v) => handleTermChange(Number(v))}
+          </View>
+          <InputRow
+            title="은행"
+            value={bank}
+            onChangeText={(v) => {
+              setBank(v);
+              setShowBankSuggestions(true);
+            }}
+            onFocus={() => setShowBankSuggestions(true)}
+            placeholder="선택"
+          />
+          {showBankSuggestions &&
+            bankSuggestions.map((b) => (
+              <ListRow
+                key={b}
+                title={b}
+                tint="primary"
+                onPress={() => {
+                  setBank(b);
+                  setShowBankSuggestions(false);
+                }}
               />
-            </View>
-            <InputRow
-              title="은행"
-              value={bank}
-              onChangeText={(v) => {
-                setBank(v);
-                setShowBankSuggestions(true);
-              }}
-              onFocus={() => setShowBankSuggestions(true)}
-              placeholder="선택"
-            />
-            {showBankSuggestions &&
-              bankSuggestions.map((b) => (
-                <ListRow
-                  key={b}
-                  title={b}
-                  tint="primary"
-                  onPress={() => {
-                    setBank(b);
-                    setShowBankSuggestions(false);
-                  }}
-                />
-              ))}
-          </GroupedSection>
+            ))}
+        </GroupedSection>
 
-          <Pressable style={styles.detailsToggle} onPress={() => setShowDetails((v) => !v)} hitSlop={8}>
-            <Text style={styles.detailsToggleText}>세부 정보 {showDetails ? '접기' : '입력'}</Text>
-            <Chevron direction={showDetails ? 'up' : 'down'} />
-          </Pressable>
+        <Pressable style={styles.detailsToggle} onPress={() => setShowDetails((v) => !v)} hitSlop={8}>
+          <Text style={styles.detailsToggleText}>세부 정보 {showDetails ? '접기' : '입력'}</Text>
+          <Chevron direction={showDetails ? 'up' : 'down'} />
+        </Pressable>
 
-          {showDetails && (
-            <>
-              <GroupedSection footer="금리를 넣으면 만기 때 받을 이자를 계산해 드려요.">
-                <InputRow title="별칭" value={name} onChangeText={setName} placeholder={defaultName(type, startDate)} />
-                <InputRow title="연 이율" value={rateText} onChangeText={setRateText} keyboardType="decimal-pad" placeholder="3.50" suffix="%" />
-                <View style={styles.taxRow}>
-                  <Text style={styles.taxLabel}>과세 구분</Text>
-                  <View style={styles.taxControl}>
-                    <Segmented
-                      options={(Object.keys(TAX_SHORT) as TaxType[]).map((k) => ({ value: k, label: TAX_SHORT[k] }))}
-                      value={taxType}
-                      onChange={setTaxType}
-                    />
-                  </View>
+        {showDetails && (
+          <>
+            <GroupedSection footer="금리를 넣으면 만기 때 받을 이자를 계산해 드려요.">
+              <InputRow title="별칭" value={name} onChangeText={setName} placeholder={defaultName(type, startDate)} />
+              <InputRow title="금리 (연)" value={rateText} onChangeText={setRateText} keyboardType="decimal-pad" placeholder="3.50" suffix="%" />
+              <View style={styles.taxRow}>
+                <Text style={styles.taxLabel}>과세 구분</Text>
+                <View style={styles.taxControl}>
+                  <Segmented
+                    options={(Object.keys(TAX_SHORT) as TaxType[]).map((k) => ({ value: k, label: TAX_SHORT[k] }))}
+                    value={taxType}
+                    onChange={setTaxType}
+                  />
                 </View>
-              </GroupedSection>
+              </View>
+            </GroupedSection>
 
-              <GroupedSection
-                footer={
-                  maturityOverride !== null ? undefined : '만기일은 가입일과 기간으로 자동 계산돼요. 직접 바꿀 수도 있어요.'
-                }
-              >
-                {type === 'savings' && (
-                  <InputRow title="월 납입일" value={payDayText} onChangeText={setPayDayText} keyboardType="number-pad" placeholder="1~31" suffix="일" />
-                )}
-                {maturityDate ? <DateRow title="만기일" value={maturityDate} onChange={setMaturityOverride} /> : null}
-              </GroupedSection>
-              {maturityOverride !== null && (
-                <Pressable onPress={() => setMaturityOverride(null)} hitSlop={8}>
-                  <Text style={styles.resetLink}>만기일 자동 계산으로 되돌리기</Text>
-                </Pressable>
+            <GroupedSection
+              footer={
+                maturityOverride !== null ? undefined : '만기일은 가입일과 기간으로 자동 계산돼요. 직접 바꿀 수도 있어요.'
+              }
+            >
+              {type === 'savings' && (
+                <InputRow title="월 납입일" value={payDayText} onChangeText={setPayDayText} keyboardType="number-pad" placeholder="1~31" suffix="일" />
               )}
+              {maturityDate ? <DateRow title="만기일" value={maturityDate} onChange={setMaturityOverride} /> : null}
+            </GroupedSection>
+            {maturityOverride !== null && (
+              <Pressable onPress={() => setMaturityOverride(null)} hitSlop={8}>
+                <Text style={styles.resetLink}>만기일 자동 계산으로 되돌리기</Text>
+              </Pressable>
+            )}
 
-              <GroupedSection>
-                <InputRow title="메모" value={memo} onChangeText={setMemo} placeholder="선택" />
-              </GroupedSection>
+            <GroupedSection>
+              <InputRow title="메모" value={memo} onChangeText={setMemo} placeholder="선택" />
+            </GroupedSection>
 
-              <Text style={styles.taxNote}>{TAX_TYPE_LABELS[taxType]} 기준으로 이자를 계산해요.</Text>
-            </>
-          )}
-        </ScrollView>
-      </KeyboardAvoidingView>
+            <Text style={styles.taxNote}>{TAX_TYPE_LABELS[taxType]} 기준으로 이자를 계산해요.</Text>
+          </>
+        )}
+      </FormScrollView>
     </>
   );
 }

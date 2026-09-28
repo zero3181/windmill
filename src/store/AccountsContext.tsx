@@ -131,6 +131,8 @@ export function AccountsProvider({ children }: { children: React.ReactNode }) {
         setSetting(db, 'windmillSize.deposit', String(merged.windmillSize.deposit)),
         setSetting(db, goalSettingKey('savings'), serializeGoal(merged.goals.savings)),
         setSetting(db, goalSettingKey('deposit'), serializeGoal(merged.goals.deposit)),
+        setSetting(db, 'stepReminder.savings', boolToSetting(merged.stepReminder.savings)),
+        setSetting(db, 'stepReminder.deposit', boolToSetting(merged.stepReminder.deposit)),
       ]);
       await refresh();
     },
