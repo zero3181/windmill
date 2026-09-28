@@ -46,7 +46,8 @@
     "web": "expo start --web",
     "test": "jest",
     "lint": "expo lint",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "dev:remote": "EXPO_TUNNEL_SUBDOMAIN=pungcha-zero3181 expo start --dev-client --tunnel --port 8082"
   },
   "private": true
 }
