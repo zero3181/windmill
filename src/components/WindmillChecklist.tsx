@@ -83,8 +83,11 @@ export function WindmillChecklist({
 
         {pending.map((step) => {
           const month = formatMonth(step.month, today);
+          // 적금은 계좌가 늘수록 매달 넣는 돈도 늘어나니, 그 달부터의 총액을 한 줄 더 알려 준다.
           const outlay =
-            type === 'savings' && step.index > 0 ? ` · 가입하면 매달 총 ${formatManwon(step.monthlyOutlay)}` : '';
+            type === 'savings' && step.index > 0
+              ? `\n가입하면 매달 총 ${formatManwon(step.monthlyOutlay)}을 넣게 돼요`
+              : '';
 
           if (step.status === 'now') {
             return (
