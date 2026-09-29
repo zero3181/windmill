@@ -51,6 +51,7 @@ export default function NewAccountScreen() {
         initial={prefill}
         knownBanks={knownBanks}
         defaultTaxType={settings.defaultTaxType}
+        windmillTerms={{ savings: settings.goals.savings?.blades, deposit: settings.goals.deposit?.blades }}
         submitLabel="저장"
         defaultAmounts={defaultAmounts}
         lockedType={step > 0}

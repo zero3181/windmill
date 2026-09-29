@@ -20,6 +20,8 @@ interface Props {
   defaultAmounts?: Partial<Record<AccountType, number>>;
   /** 풍차 체크리스트에서 들어오면 종류가 정해져 있어 고르지 않는다. */
   lockedType?: boolean;
+  /** 종류별 풍차 날개 수 = 풍차에 들어가는 계좌의 가입 기간 (풍차를 만든 종류만) */
+  windmillTerms?: Partial<Record<AccountType, number>>;
   /** 폼 맨 위에 둘 안내 (체크리스트 단계의 가입 조건 등) */
   header?: React.ReactNode;
   /** 이율·과세·납입일 등 세부 항목을 처음부터 펼칠지 (기존 계좌 편집) */
@@ -28,6 +30,7 @@ interface Props {
 }
 
 const TAX_SHORT: Record<TaxType, string> = { general: '일반과세', preferential: '세금우대', exempt: '비과세' };
+const UNIT: Record<AccountType, string> = { savings: '적금', deposit: '예금' };
 
 /** 별칭을 비워 두면 '9월 적금'처럼 가입 달로 이름을 붙인다. */
 function defaultName(type: AccountType, startDate: string): string {
@@ -42,6 +45,7 @@ export function AccountForm({
   banner,
   defaultAmounts = {},
   lockedType = false,
+  windmillTerms = {},
   header,
   detailsOpen = false,
   onSubmit,
@@ -57,7 +61,11 @@ export function AccountForm({
   const [rateText, setRateText] = useState(initial?.rate ? String(initial.rate) : '');
   const [taxType, setTaxType] = useState<TaxType>(initial?.taxType ?? defaultTaxType);
   const [startDate, setStartDate] = useState<string>(initial?.startDate ?? todayKST());
-  const [termMonths, setTermMonths] = useState(initial?.termMonths ?? 12);
+  // 풍차가 있으면 그 풍차의 기간(날개 수)을 기본으로 한다.
+  const [termMonths, setTermMonths] = useState(
+    initial?.termMonths ?? windmillTerms[initial?.type ?? 'savings'] ?? 12
+  );
+  const [termTouched, setTermTouched] = useState(Boolean(initial?.termMonths));
   const [payDayText, setPayDayText] = useState(
     initial?.payDay ? String(initial.payDay) : String(parseISODate(initial?.startDate ?? todayKST()).d)
   );
@@ -94,15 +102,20 @@ export function AccountForm({
     if (!initial?.payDay) setPayDayText(String(parseISODate(iso).d));
   }
 
-  function handleTermChange(months: number) {
+  function handleTermChange(months: number, byUser = true) {
     setTermMonths(months);
     setMaturityOverride(null);
+    if (byUser) setTermTouched(true);
   }
 
   function handleTypeChange(next: AccountType) {
     setType(next);
     if (!amountTouched) setAmountText(formatAmount(defaultAmounts[next]));
+    if (!termTouched && windmillTerms[next]) handleTermChange(windmillTerms[next], false);
   }
+
+  const windmillTerm = windmillTerms[type];
+  const outsideWindmill = windmillTerm !== undefined && termMonths !== windmillTerm;
 
   function validate(): string | null {
     const amount = Number(amountText.replace(/,/g, ''));
@@ -181,7 +194,13 @@ export function AccountForm({
           />
         )}
 
-        <GroupedSection>
+        <GroupedSection
+          footer={
+            outsideWindmill
+              ? `${UNIT[type]} 풍차는 ${windmillTerm}개월 ${UNIT[type]}으로 돌아가요. ${termMonths}개월 ${UNIT[type]}은 풍차 날개를 채우지 않고 목록에만 기록돼요.`
+              : undefined
+          }
+        >
           <InputRow
             title={type === 'deposit' ? '예치금' : '월 납입액'}
             value={amountText}
@@ -194,14 +213,19 @@ export function AccountForm({
             suffix="원"
           />
           <DateRow title="가입일" value={startDate} onChange={handleStartDateChange} />
-          <View style={styles.taxRow}>
-            <Text style={styles.taxLabel}>가입 기간</Text>
-            <Segmented
-              options={termOptions.map((m) => ({ value: String(m), label: `${m}개월` }))}
-              value={String(termMonths)}
-              onChange={(v) => handleTermChange(Number(v))}
-            />
-          </View>
+          {lockedType ? (
+            // 할 일에서 가입할 때는 풍차 주기에 맞는 기간만 가능하다.
+            <ListRow title="가입 기간" detail={`${termMonths}개월`} />
+          ) : (
+            <View style={styles.taxRow}>
+              <Text style={styles.taxLabel}>가입 기간</Text>
+              <Segmented
+                options={termOptions.map((m) => ({ value: String(m), label: `${m}개월` }))}
+                value={String(termMonths)}
+                onChange={(v) => handleTermChange(Number(v))}
+              />
+            </View>
+          )}
           <InputRow
             title="은행"
             value={bank}

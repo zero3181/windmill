@@ -1,5 +1,5 @@
 import type { Account } from '../types/account';
-import { bladePosition } from './blades';
+import { bladePosition, fitsWindmill } from './blades';
 import {
   addMonthsClamped,
   calcAccountFinancials,
@@ -124,7 +124,10 @@ export interface WindmillBar {
   end: number;
   /** 가입일부터 매월 돌아오는 회차 경계 위치 (첫 회차, 만기 제외) */
   ticks: number[];
-  /** 이 계좌가 채우는 풍차 날개 자리 (만기월로 정해진다, bladePosition 참고) */
+  /**
+   * 이 계좌가 채우는 풍차 날개 자리 (만기월로 정해진다, bladePosition 참고).
+   * 가입 기간이 날개 수와 다른 계좌는 만기가 풍차 주기와 어긋나 날개를 채우지 않는다: -1
+   */
   bladeIndex: number;
 }
 
@@ -180,7 +183,7 @@ export function selectWindmill(
       start: monthPosition(rangeStart, startDate),
       end: monthPosition(rangeStart, item.financials.maturityDate),
       ticks,
-      bladeIndex: bladePosition(item.financials.maturityDate, blades),
+      bladeIndex: fitsWindmill(item.account, blades) ? bladePosition(item.financials.maturityDate, blades) : -1,
     };
   });
 
@@ -190,7 +193,7 @@ export function selectWindmill(
     monthCount,
     today: monthPosition(rangeStart, today),
     count: rows.length,
-    filledBlades: [...new Set(bars.map((b) => b.bladeIndex))].sort((a, b) => a - b),
+    filledBlades: [...new Set(bars.map((b) => b.bladeIndex).filter((i) => i >= 0))].sort((a, b) => a - b),
     totalPrincipal: rows.reduce((sum, r) => sum + r.financials.currentPrincipal, 0),
   };
 }

@@ -96,4 +96,17 @@ describe('buildChecklist', () => {
     const accounts = [savings('a', '2026-01-10'), savings('b', '2027-01-10')];
     expect(buildChecklist(goal, 'savings', accounts, '2027-01-20').doneCount).toBe(1);
   });
+
+  it('only counts accounts whose term matches the blade count', () => {
+    const six = { blades: 6 as const, total: 600_000 };
+    const accounts = [
+      savings('twelve', '2026-09-10'), // 12개월 적금: 6날개 풍차에는 들어가지 않는다
+      savings('six', '2026-08-10', { termMonths: 6, maturityDate: computeMaturityDate('2026-08-10', 6) }),
+    ];
+    const c = buildChecklist(six, 'savings', accounts, '2026-09-20');
+    expect(c.doneCount).toBe(1);
+    expect(c.steps[0].account?.id).toBe('six');
+    // 9월 자리는 12개월 적금이 채우지 못하니 여전히 지금 가입할 차례다.
+    expect(c.steps[1]).toMatchObject({ status: 'now', month: '2026-09-01' });
+  });
 });

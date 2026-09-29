@@ -24,7 +24,7 @@ function parseAmount(text: string): number {
 export default function CreateWindmillScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ type?: AccountType }>();
-  const { settings, updateSettings } = useAccounts();
+  const { accounts, settings, updateSettings } = useAccounts();
   const { setType: setHomeType } = useWindmillType();
 
   const editing = params.type ? settings.goals[params.type] : undefined;
@@ -33,6 +33,8 @@ export default function CreateWindmillScreen() {
   const [total, setTotal] = useState(editing?.total ?? 0);
 
   const perAccount = Math.floor(total / blades);
+  // 날개 수와 기간이 다른 계좌는 풍차에 들어가지 않는다는 것을 미리 알려 준다.
+  const outsideCount = accounts.filter((a) => a.status === 'active' && a.type === type && a.termMonths !== blades).length;
   const unit = UNIT[type];
 
   const amountFooter =
@@ -112,7 +114,10 @@ export default function CreateWindmillScreen() {
 
         <GroupedSection
           title="날개 수"
-          footer={`매달 ${unit}을 하나씩 ${blades}번 가입해요. ${unit} 하나의 기간은 ${blades}개월이라, 풍차가 다 돌면 매달 만기가 돌아와요.`}
+          footer={
+            `매달 ${unit}을 하나씩 ${blades}번 가입해요. ${unit} 하나의 기간은 ${blades}개월이라, 풍차가 다 돌면 매달 만기가 돌아와요.` +
+            (outsideCount > 0 ? ` 지금 있는 ${unit} 중 ${outsideCount}개는 기간이 ${blades}개월이 아니라 날개를 채우지 않아요.` : '')
+          }
         >
           <View style={styles.segmentRow}>
             <Segmented

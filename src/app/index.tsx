@@ -9,6 +9,7 @@ import { UpcomingSection } from '../components/UpcomingSection';
 import { WindmillCard } from '../components/WindmillCard';
 import { WindmillChecklist } from '../components/WindmillChecklist';
 import { WindmillHero } from '../components/WindmillHero';
+import { fitsWindmill } from '../lib/blades';
 import { todayKST } from '../lib/calc';
 import { buildChecklist, type ChecklistStep } from '../lib/checklist';
 import { selectUpcoming, selectWindmill, withFinancials } from '../lib/homeSelectors';
@@ -182,7 +183,7 @@ export default function HomeScreen() {
             {typeItems.length > 0 && (
               <GroupedSection title={`내 ${TYPE_LABEL[type]} ${typeItems.length}개`}>
                 {typeItems.map((item) => (
-                  <AccountListItem key={item.account.id} item={item} />
+                  <AccountListItem key={item.account.id} item={item} outsideWindmill={!fitsWindmill(item.account, blades)} />
                 ))}
               </GroupedSection>
             )}

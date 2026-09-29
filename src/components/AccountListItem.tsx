@@ -7,7 +7,8 @@ import { isSampleAccount } from '../lib/sampleData';
 import { colors } from '../theme';
 import { ListRow } from './ui/Grouped';
 
-export function AccountListItem({ item }: { item: AccountWithFinancials }) {
+/** outsideWindmill: 가입 기간이 풍차와 달라 날개를 채우지 않는 계좌 */
+export function AccountListItem({ item, outsideWindmill = false }: { item: AccountWithFinancials; outsideWindmill?: boolean }) {
   const router = useRouter();
   const { account, financials } = item;
   const isSample = isSampleAccount(account.id);
@@ -16,7 +17,7 @@ export function AccountListItem({ item }: { item: AccountWithFinancials }) {
   return (
     <ListRow
       title={account.name}
-      subtitle={accountSubtitle(account) || undefined}
+      subtitle={accountSubtitle(account, outsideWindmill ? `${account.termMonths}개월 · 풍차 밖` : undefined) || undefined}
       detail={status}
       detailStyle={account.status === 'active' && financials.daysToMaturity < 0 ? styles.overdue : undefined}
       chevron={!isSample}

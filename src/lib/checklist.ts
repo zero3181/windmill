@@ -1,5 +1,5 @@
 import type { Account, AccountType } from '../types/account';
-import { bladePosition } from './blades';
+import { bladePosition, fitsWindmill } from './blades';
 import { addMonthsClamped, compareISODates, parseISODate, toISODate, type ISODate } from './calc';
 import type { WindmillGoal } from './settings';
 
@@ -49,10 +49,10 @@ export function buildChecklist(goal: WindmillGoal, type: AccountType, accounts: 
   const { blades, total } = goal;
   const perAccount = Math.floor(total / blades);
 
-  // 날개 자리마다 가장 먼저 가입한 계좌 하나를 그 날개의 주인으로 본다.
+  // 날개 자리마다 가장 먼저 가입한 계좌 하나를 그 날개의 주인으로 본다. 기간이 풍차와 다른 계좌는 빼고 센다.
   const byBlade = new Map<number, Account>();
   for (const account of accounts
-    .filter((a) => a.status === 'active' && a.type === type)
+    .filter((a) => a.status === 'active' && a.type === type && fitsWindmill(a, blades))
     .sort((a, b) => compareISODates(a.startDate, b.startDate))) {
     const blade = bladePosition(account.maturityDate, blades);
     if (!byBlade.has(blade)) byBlade.set(blade, account);

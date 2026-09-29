@@ -15,3 +15,11 @@ export function allBlades(blades: number): number[] {
 export function bladeMonth(position: number, blades: number): number {
   return position === 0 ? blades : position;
 }
+
+/**
+ * 풍차에 들어가는 계좌인지. 날개 수만큼의 기간(6날개면 6개월)이어야
+ * 만기가 날개 수 개월마다 같은 자리로 돌아와 풍차가 계속 돈다.
+ */
+export function fitsWindmill(account: { termMonths: number }, blades: number): boolean {
+  return account.termMonths === blades;
+}

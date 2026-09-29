@@ -25,6 +25,7 @@ export default function EditAccountScreen() {
       initial={account}
       knownBanks={knownBanks}
       defaultTaxType={settings.defaultTaxType}
+      windmillTerms={{ savings: settings.goals.savings?.blades, deposit: settings.goals.deposit?.blades }}
       submitLabel="완료"
       detailsOpen
       onSubmit={handleSubmit}

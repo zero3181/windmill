@@ -133,8 +133,10 @@ describe('selectWindmill', () => {
     const w = selectWindmill(withFinancials(accounts, '2026-03-20'), 'savings', '2026-03-20');
     // 12월은 12시 방향(0), 1월은 1, 3월은 3. 2월 날개는 비어 있다.
     expect(w.filledBlades).toEqual([0, 1, 3]);
-    // 6날개 풍차에서는 12월=0, 1월=1, 3월=3
-    expect(selectWindmill(withFinancials(accounts, '2026-03-20'), 'savings', '2026-03-20', 6).filledBlades).toEqual([0, 1, 3]);
+    // 12개월 계좌는 6날개 풍차의 주기와 맞지 않아 날개를 채우지 않는다.
+    const six = selectWindmill(withFinancials(accounts, '2026-03-20'), 'savings', '2026-03-20', 6);
+    expect(six.filledBlades).toEqual([]);
+    expect(six.bars.every((b) => b.bladeIndex === -1)).toBe(true);
   });
 
   it('places mid-month dates fractionally', () => {
