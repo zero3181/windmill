@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, StyleSheet, View } from 'react-native';
 import Svg, { Circle, Defs, Ellipse, G, LinearGradient, Path, Stop } from 'react-native-svg';
+import { bladeMonth } from '../lib/blades';
 
 const AnimatedG = Animated.createAnimatedComponent(G);
 
@@ -20,21 +21,28 @@ const EMPTY_FILL = '#E9E9EE';
 interface Props {
   /** 날개 수 = 가입 기간(개월) */
   blades: number;
-  /** 채워진 날개 수 (만기월이 다른 계좌 수) */
-  filled: number;
+  /** 채워진 날개 자리 (bladePosition으로 구한 0~blades-1). 날개 하나가 만기월 하나를 뜻한다. */
+  filled: number[];
   width: number;
 }
 
-/** 만기월이 다른 계좌가 생길 때마다 날개가 하나씩 채워지고, 다 채우면 돌아가는 풍차. */
+/**
+ * 날개 하나가 달 하나를 뜻하는 풍차. 시계처럼 12시 방향이 12월, 1시 방향이 1월이다.
+ * 계좌의 만기월 자리에 날개가 생기고, 모든 자리가 채워지면 돌아간다.
+ */
 export function Windmill({ blades, filled, width }: Props) {
-  const count = Math.min(filled, blades);
+  const filledSet = new Set(filled);
+  const count = filledSet.size;
   const complete = count >= blades;
   const scale = width / VIEW;
 
   const [spin] = useState(() => new Animated.Value(0));
   const [wiggle] = useState(() => new Animated.Value(0));
   const [grow] = useState(() => new Animated.Value(1));
-  const prevCount = useRef(count);
+  const filledKey = [...filledSet].sort((a, b) => a - b).join(',');
+  const prevFilled = useRef(filledSet);
+  /** 방금 새로 채워진 날개 자리 (자라나는 애니메이션을 준다) */
+  const [fresh, setFresh] = useState<Set<number>>(() => new Set());
   const [reduceMotion, setReduceMotion] = useState(false);
 
   useEffect(() => {
@@ -45,16 +53,18 @@ export function Windmill({ blades, filled, width }: Props) {
 
   // 날개가 새로 생기면 허브에서 스프링으로 자라나고, 로터가 살짝 밀린다.
   useEffect(() => {
-    if (count > prevCount.current && !reduceMotion) {
-      grow.setValue(0.3);
-      wiggle.setValue(-8);
-      Animated.parallel([
-        Animated.spring(grow, { toValue: 1, friction: 6, tension: 90, useNativeDriver: false }),
-        Animated.spring(wiggle, { toValue: 0, friction: 4, tension: 60, useNativeDriver: true }),
-      ]).start();
-    }
-    prevCount.current = count;
-  }, [count, reduceMotion, grow, wiggle]);
+    const current = new Set(filledKey ? filledKey.split(',').map(Number) : []);
+    const added = new Set([...current].filter((p) => !prevFilled.current.has(p)));
+    prevFilled.current = current;
+    if (added.size === 0 || reduceMotion) return;
+    setFresh(added);
+    grow.setValue(0.3);
+    wiggle.setValue(-8);
+    Animated.parallel([
+      Animated.spring(grow, { toValue: 1, friction: 6, tension: 90, useNativeDriver: false }),
+      Animated.spring(wiggle, { toValue: 0, friction: 4, tension: 60, useNativeDriver: true }),
+    ]).start();
+  }, [filledKey, reduceMotion, grow, wiggle]);
 
   // 날개를 모두 채우면 천천히 계속 돈다.
   useEffect(() => {
@@ -82,7 +92,11 @@ export function Windmill({ blades, filled, width }: Props) {
       style={{ width, height: width * (VIEW_H / VIEW) }}
       accessible
       accessibilityRole="image"
-      accessibilityLabel={complete ? `풍차 완성, 날개 ${blades}개` : `풍차 날개 ${blades}개 중 ${count}개 채움`}
+      accessibilityLabel={
+        complete
+          ? `풍차 완성, 날개 ${blades}개`
+          : `풍차 날개 ${blades}개 중 ${count}개 채움${count > 0 ? ` (${[...filledSet].sort((a, b) => a - b).map((p) => `${bladeMonth(p, blades)}월`).join(', ')})` : ''}`
+      }
     >
       <Svg width={width} height={width * (VIEW_H / VIEW)} viewBox={`0 0 ${VIEW} ${VIEW_H}`} style={StyleSheet.absoluteFill}>
         <Defs>
@@ -111,14 +125,14 @@ export function Windmill({ blades, filled, width }: Props) {
         <Svg width={box} height={box} viewBox={`${-BLADE_BOX / 2} ${-BLADE_BOX / 2} ${BLADE_BOX} ${BLADE_BOX}`}>
           {Array.from({ length: blades }, (_, i) => {
             const angle = (360 / blades) * i;
-            if (i >= count) {
+            if (!filledSet.has(i)) {
               return <Path key={i} d={bladePath} fill={EMPTY_FILL} rotation={angle} origin="0, 0" />;
             }
             const blade = (
               <Path d={bladePath} fill={bladeColor(i, blades)} rotation={angle} origin="0, 0" />
             );
-            // 가장 최근에 채워진 날개만 허브에서 자라나게 한다.
-            return i === count - 1 ? (
+            // 방금 채워진 날개만 허브에서 자라나게 한다.
+            return fresh.has(i) ? (
               <AnimatedG key={i} scale={grow} origin="0, 0">
                 {blade}
               </AnimatedG>

@@ -12,7 +12,7 @@ export function EmptyState() {
   return (
     <Card style={styles.card}>
       <View style={styles.art}>
-        <Windmill blades={12} filled={0} width={200} />
+        <Windmill blades={12} filled={[]} width={200} />
       </View>
       <Text style={styles.title}>나만의 풍차를 만들어 보세요</Text>
       <Text style={styles.desc}>날개 수와 금액만 정하면{'\n'}매달 무엇을 가입하면 되는지 알려드려요.</Text>

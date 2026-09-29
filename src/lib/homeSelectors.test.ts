@@ -99,7 +99,7 @@ describe('selectWindmill', () => {
 
     expect(w.bars.map((b) => b.item.account.id)).toEqual(['s1', 's2']);
     expect(w.count).toBe(2);
-    expect(w.maturityMonthCount).toBe(2);
+    expect(w.filledBlades).toEqual([1, 2]); // 1월·2월 만기
     // 2026-03-01 기준 s1은 3회(1·2·3월), s2는 2회(2·3월) 납입
     expect(w.totalPrincipal).toBe(200_000 * 3 + 100_000 * 2);
     expect(w.rangeStart).toBe('2026-01-01');
@@ -111,7 +111,7 @@ describe('selectWindmill', () => {
     expect(w.today).toBe(2);
   });
 
-  it('counts accounts maturing in the same month as one blade', () => {
+  it('puts each account on the blade of its maturity month', () => {
     const accounts = [
       makeAccount({ id: 'a', type: 'savings', startDate: '2026-01-05', maturityDate: '2027-01-05' }),
       makeAccount({ id: 'b', type: 'savings', startDate: '2026-01-20', maturityDate: '2027-01-20' }),
@@ -119,8 +119,22 @@ describe('selectWindmill', () => {
     ];
     const w = selectWindmill(withFinancials(accounts, '2026-03-01'), 'savings', '2026-03-01');
     expect(w.count).toBe(3);
-    expect(w.maturityMonthCount).toBe(2);
-    expect(w.bars.map((b) => b.bladeIndex)).toEqual([0, 0, 1]);
+    // 같은 1월 만기 두 계좌는 1월 날개 하나를 채운다.
+    expect(w.filledBlades).toEqual([1, 2]);
+    expect(w.bars.map((b) => b.bladeIndex)).toEqual([1, 1, 2]);
+  });
+
+  it('skips blades for months that are not filled yet', () => {
+    const accounts = [
+      makeAccount({ id: 'jan', type: 'savings', startDate: '2026-01-10', maturityDate: '2027-01-10' }),
+      makeAccount({ id: 'mar', type: 'savings', startDate: '2026-03-10', maturityDate: '2027-03-10' }),
+      makeAccount({ id: 'dec', type: 'savings', startDate: '2025-12-10', maturityDate: '2026-12-10' }),
+    ];
+    const w = selectWindmill(withFinancials(accounts, '2026-03-20'), 'savings', '2026-03-20');
+    // 12월은 12시 방향(0), 1월은 1, 3월은 3. 2월 날개는 비어 있다.
+    expect(w.filledBlades).toEqual([0, 1, 3]);
+    // 6날개 풍차에서는 12월=0, 1월=1, 3월=3
+    expect(selectWindmill(withFinancials(accounts, '2026-03-20'), 'savings', '2026-03-20', 6).filledBlades).toEqual([0, 1, 3]);
   });
 
   it('places mid-month dates fractionally', () => {

@@ -5,6 +5,7 @@ import { Segmented } from '../components/ui/Controls';
 import { InputRow } from '../components/ui/FormRows';
 import { GroupedSection, ListRow } from '../components/ui/Grouped';
 import { Windmill } from '../components/Windmill';
+import { allBlades } from '../lib/blades';
 import { formatManwon } from '../lib/format';
 import { WINDMILL_SIZES, type WindmillSize } from '../lib/settings';
 import { useAccounts } from '../store/AccountsContext';
@@ -84,7 +85,7 @@ export default function CreateWindmillScreen() {
 
       <FormScrollView contentContainerStyle={styles.content}>
         <View style={styles.art}>
-          <Windmill blades={blades} filled={blades} width={180} />
+          <Windmill blades={blades} filled={allBlades(blades)} width={180} />
         </View>
 
         {!editing && (

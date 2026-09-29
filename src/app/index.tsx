@@ -8,6 +8,7 @@ import { Card, GroupedSection, ListRow } from '../components/ui/Grouped';
 import { UpcomingSection } from '../components/UpcomingSection';
 import { WindmillCard } from '../components/WindmillCard';
 import { WindmillChecklist } from '../components/WindmillChecklist';
+import { WindmillHero } from '../components/WindmillHero';
 import { todayKST } from '../lib/calc';
 import { buildChecklist, type ChecklistStep } from '../lib/checklist';
 import { selectUpcoming, selectWindmill, withFinancials } from '../lib/homeSelectors';
@@ -58,7 +59,7 @@ export default function HomeScreen() {
     [items, type]
   );
   const upcoming = useMemo(() => selectUpcoming(items, type), [items, type]);
-  const windmill = useMemo(() => selectWindmill(items, type, today), [items, type, today]);
+  const windmill = useMemo(() => selectWindmill(items, type, today, blades), [items, type, today, blades]);
   const checklist = useMemo(
     () => (goal ? buildChecklist(goal, type, activeAccounts, today) : null),
     [goal, type, activeAccounts, today]
@@ -130,16 +131,7 @@ export default function HomeScreen() {
           <EmptyState />
         ) : (
           <>
-            {showTypeSwitch && (
-              <Segmented
-                options={[
-                  { value: 'savings', label: '적금 풍차' },
-                  { value: 'deposit', label: '예금 풍차' },
-                ]}
-                value={type}
-                onChange={setType}
-              />
-            )}
+            <WindmillHero blades={blades} filled={windmill.filledBlades} />
 
             <WindmillCard
               windmill={windmill}
@@ -151,6 +143,17 @@ export default function HomeScreen() {
               }
               emptyLabel={`첫 ${TYPE_LABEL[type]}을 가입하면 여기에 가입~만기 그래프가 생겨요`}
             />
+
+            {showTypeSwitch && (
+              <Segmented
+                options={[
+                  { value: 'savings', label: '적금 풍차' },
+                  { value: 'deposit', label: '예금 풍차' },
+                ]}
+                value={type}
+                onChange={setType}
+              />
+            )}
 
             {checklist ? (
               <WindmillChecklist

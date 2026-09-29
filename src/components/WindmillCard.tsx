@@ -8,7 +8,7 @@ import { isSampleAccount } from '../lib/sampleData';
 import { WINDMILL_SIZES, type WindmillSize } from '../lib/settings';
 import { colors, radius, spacing } from '../theme';
 import { Card } from './ui/Grouped';
-import { bladeColor, Windmill as WindmillArt } from './Windmill';
+import { bladeColor } from './Windmill';
 
 const MIN_MONTH_WIDTH = 12;
 const ROW_HEIGHT = 16;
@@ -25,11 +25,8 @@ interface Props {
   emptyLabel: string;
 }
 
-/** 내 풍차 요약: 총 개수 · 원금 · 만기월마다 날개가 채워지는 풍차 · 가입월~만기월 계단 그래프. */
+/** 내 풍차 요약: 총 개수 · 원금 · 가입월~만기월 계단 그래프. 풍차 그림은 홈 위쪽 WindmillHero에 있다. */
 export function WindmillCard({ windmill, size, onSizeChange, sample = false, emptyLabel }: Props) {
-  const filled = Math.min(windmill.maturityMonthCount, size);
-  const [artWidth, setArtWidth] = useState(0);
-
   return (
     <Card>
       <View style={styles.header}>
@@ -62,10 +59,6 @@ export function WindmillCard({ windmill, size, onSizeChange, sample = false, emp
             ))}
           </View>
         )}
-      </View>
-
-      <View style={styles.art} onLayout={(e) => setArtWidth(Math.min(240, e.nativeEvent.layout.width * 0.72))}>
-        {artWidth > 0 && <WindmillArt blades={size} filled={filled} width={artWidth} />}
       </View>
 
       {windmill.bars.length === 0 ? (
@@ -188,10 +181,6 @@ const styles = StyleSheet.create({
   },
   sizeTextSelected: {
     color: colors.text,
-  },
-  art: {
-    alignItems: 'center',
-    marginTop: spacing.sm,
   },
   countRow: {
     flexDirection: 'row',

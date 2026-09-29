@@ -19,7 +19,8 @@ export default function RootLayout() {
               <WindmillTypeProvider>
                 <StatusBar style="dark" />
                 <Stack screenOptions={{ contentStyle: { backgroundColor: colors.bg }, headerBackButtonDisplayMode: 'minimal' }}>
-                  <Stack.Screen name="index" options={{ title: '내 풍차', headerLargeTitleEnabled: true, headerTransparent: true }} />
+                  {/* 홈은 제목 대신 위쪽의 큰 풍차(히어로)가 화면을 연다. 뒤로 가기 표시용 이름만 남긴다. */}
+                  <Stack.Screen name="index" options={{ title: '내 풍차', headerTitle: '', headerTransparent: true }} />
                   <Stack.Screen name="account/[id]" options={{ title: '' }} />
                   <Stack.Screen name="month/[month]" options={{ title: '월별 만기' }} />
                   <Stack.Screen name="archive" options={{ title: '종료된 계좌' }} />

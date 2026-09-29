@@ -1,4 +1,5 @@
 import type { Account } from '../types/account';
+import { bladePosition } from './blades';
 import {
   addMonthsClamped,
   calcAccountFinancials,
@@ -123,7 +124,7 @@ export interface WindmillBar {
   end: number;
   /** 가입일부터 매월 돌아오는 회차 경계 위치 (첫 회차, 만기 제외) */
   ticks: number[];
-  /** 이 계좌가 채우는 풍차 날개 순번: 서로 다른 만기월을 이른 순으로 센 번호 (같은 만기월이면 같은 번호) */
+  /** 이 계좌가 채우는 풍차 날개 자리 (만기월로 정해진다, bladePosition 참고) */
   bladeIndex: number;
 }
 
@@ -135,8 +136,8 @@ export interface Windmill {
   monthCount: number;
   today: number;
   count: number;
-  /** 만기월(YYYY-MM)이 서로 다른 계좌 수. 같은 달에 만기되는 계좌는 날개 하나로 친다. */
-  maturityMonthCount: number;
+  /** 채워진 날개 자리. 만기월이 같은 자리(12날개면 같은 달)인 계좌는 날개 하나로 친다. */
+  filledBlades: number[];
   /** 지금까지 납입한 원금 합계 (적금: 납입된 회차 합, 예금: 예치액) */
   totalPrincipal: number;
 }
@@ -151,7 +152,8 @@ function monthPosition(base: ISODate, date: ISODate): number {
 export function selectWindmill(
   items: AccountWithFinancials[],
   type: Account['type'],
-  today: ISODate = todayKST()
+  today: ISODate = todayKST(),
+  blades = 12
 ): Windmill {
   const rows = items
     .filter((i) => i.account.status === 'active' && i.account.type === type)
@@ -167,8 +169,6 @@ export function selectWindmill(
   const rangeStart = toISODate(y, m, 1);
   const monthCount = Math.floor(monthPosition(rangeStart, lastDates[lastDates.length - 1])) + 1;
 
-  const maturityMonths = [...new Set(rows.map((r) => monthKey(r.financials.maturityDate)))].sort();
-
   const bars = rows.map((item) => {
     const { startDate, termMonths } = item.account;
     const ticks: number[] = [];
@@ -180,7 +180,7 @@ export function selectWindmill(
       start: monthPosition(rangeStart, startDate),
       end: monthPosition(rangeStart, item.financials.maturityDate),
       ticks,
-      bladeIndex: maturityMonths.indexOf(monthKey(item.financials.maturityDate)),
+      bladeIndex: bladePosition(item.financials.maturityDate, blades),
     };
   });
 
@@ -190,7 +190,7 @@ export function selectWindmill(
     monthCount,
     today: monthPosition(rangeStart, today),
     count: rows.length,
-    maturityMonthCount: maturityMonths.length,
+    filledBlades: [...new Set(bars.map((b) => b.bladeIndex))].sort((a, b) => a - b),
     totalPrincipal: rows.reduce((sum, r) => sum + r.financials.currentPrincipal, 0),
   };
 }

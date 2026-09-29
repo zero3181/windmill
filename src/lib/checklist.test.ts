@@ -78,4 +78,22 @@ describe('buildChecklist', () => {
     expect(c.doneCount).toBe(11);
     expect(c.steps[11]).toMatchObject({ status: 'now', month: '2027-01-01' });
   });
+
+  it('fills the empty month blades, skipping months already taken', () => {
+    // 1월·3월 만기 계좌가 있고 지금은 3월: 이번 달(3월) 자리는 찼으니 4월부터 비어 있는 달을 안내한다.
+    const accounts = [savings('jan', '2026-01-10'), savings('mar', '2026-03-10')];
+    const c = buildChecklist(goal, 'savings', accounts, '2026-03-20');
+    expect(c.doneCount).toBe(2);
+    expect(c.steps[2]).toMatchObject({ status: 'scheduled', month: '2026-04-01' });
+    const months = c.steps.filter((s) => s.status !== 'done').map((s) => s.month);
+    // 2월 자리는 내년 2월에 가입해야 채워진다.
+    expect(months).toContain('2027-02-01');
+    expect(months).not.toContain('2026-03-01');
+    expect(months).toHaveLength(10);
+  });
+
+  it('treats the same month in different years as one blade', () => {
+    const accounts = [savings('a', '2026-01-10'), savings('b', '2027-01-10')];
+    expect(buildChecklist(goal, 'savings', accounts, '2027-01-20').doneCount).toBe(1);
+  });
 });
