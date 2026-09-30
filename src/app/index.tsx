@@ -134,6 +134,18 @@ export default function HomeScreen() {
           <>
             <WindmillHero blades={blades} filled={windmill.filledBlades} />
 
+            {showTypeSwitch && (
+              <Segmented
+                options={[
+                  { value: 'savings', label: '적금 풍차' },
+                  { value: 'deposit', label: '예금 풍차' },
+                ]}
+                value={type}
+                onChange={setType}
+                size="large"
+              />
+            )}
+
             <WindmillCard
               windmill={windmill}
               size={blades}
@@ -144,17 +156,6 @@ export default function HomeScreen() {
               }
               emptyLabel={`첫 ${TYPE_LABEL[type]}을 가입하면 여기에 가입~만기 그래프가 생겨요`}
             />
-
-            {showTypeSwitch && (
-              <Segmented
-                options={[
-                  { value: 'savings', label: '적금 풍차' },
-                  { value: 'deposit', label: '예금 풍차' },
-                ]}
-                value={type}
-                onChange={setType}
-              />
-            )}
 
             {checklist ? (
               <WindmillChecklist

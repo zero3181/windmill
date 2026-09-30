@@ -8,17 +8,20 @@ export function Segmented<T extends string>({
   options,
   value,
   onChange,
+  size = 'regular',
 }: {
   options: { value: T; label: string }[];
   value: T;
   onChange: (value: T) => void;
+  /** large: 홈의 적금/예금 풍차 전환처럼 화면을 나누는 큰 전환 (높이 44) */
+  size?: 'regular' | 'large';
 }) {
   return (
     <SegmentedControl
       values={options.map((o) => o.label)}
       selectedIndex={Math.max(0, options.findIndex((o) => o.value === value))}
       onChange={(e) => onChange(options[e.nativeEvent.selectedSegmentIndex].value)}
-      style={styles.segmented}
+      style={[styles.segmented, size === 'large' && styles.segmentedLarge]}
     />
   );
 }
@@ -60,6 +63,9 @@ export function Chip({ label, selected, onPress }: { label: string; selected: bo
 const styles = StyleSheet.create({
   segmented: {
     height: 36,
+  },
+  segmentedLarge: {
+    height: 44,
   },
   button: {
     height: 52,
