@@ -11,8 +11,8 @@ import { Card } from './ui/Grouped';
 import { bladeColor } from './Windmill';
 
 const MIN_MONTH_WIDTH = 12;
-const ROW_HEIGHT = 16;
-const BAR_HEIGHT = 10;
+const ROW_HEIGHT = 26;
+const BAR_HEIGHT = 20;
 
 interface Props {
   windmill: Windmill;
