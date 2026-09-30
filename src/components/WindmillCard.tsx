@@ -30,19 +30,18 @@ export function WindmillCard({ windmill, size, onSizeChange, sample = false, emp
   return (
     <Card>
       <View style={styles.header}>
+        {/* 총 개수와 원금을 한 줄에: 글자 아랫선을 맞춘다 */}
         <View style={styles.headerText}>
-          <View style={styles.countRow}>
-            <Text style={styles.count}>총 {windmill.count}개</Text>
-            {sample && (
-              <View style={styles.sampleBadge}>
-                <Text style={styles.sampleBadgeText}>예시</Text>
-              </View>
-            )}
-          </View>
+          <Text style={styles.count}>총 {windmill.count}개</Text>
           <View style={styles.amountRow}>
             <Text style={styles.amountLabel}>원금</Text>
             <Text style={styles.amount}>{formatWon(windmill.totalPrincipal)}</Text>
           </View>
+          {sample && (
+            <View style={styles.sampleBadge}>
+              <Text style={styles.sampleBadgeText}>예시</Text>
+            </View>
+          )}
         </View>
         {onSizeChange && (
           <View style={styles.sizeToggle}>
@@ -159,6 +158,10 @@ const styles = StyleSheet.create({
   },
   headerText: {
     flex: 1,
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    flexWrap: 'wrap',
+    columnGap: spacing.md,
   },
   sizeToggle: {
     flexDirection: 'row',
@@ -187,11 +190,6 @@ const styles = StyleSheet.create({
   sizeTextSelected: {
     color: colors.text,
   },
-  countRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.sm,
-  },
   count: {
     fontSize: 28,
     fontWeight: '700',
@@ -212,7 +210,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 6,
-    marginTop: 2,
   },
   amountLabel: {
     fontSize: 15,
