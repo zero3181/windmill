@@ -39,6 +39,12 @@ export default function HomeScreen() {
   /** 투명 헤더(… 버튼) 아래에서 시작한다 */
   const topOffset = insets.top + NAV_BAR_HEIGHT;
   const [scrollY] = useState(() => new Animated.Value(0));
+  const [fade] = useState(() => new Animated.Value(1));
+  function handleTypeChange(next: AccountType) {
+    fade.setValue(0);
+    setType(next);
+    Animated.timing(fade, { toValue: 1, duration: 220, useNativeDriver: true }).start();
+  }
   const [heroHeight, setHeroHeight] = useState(0);
   const [showMonths, setShowMonths] = useState(false);
   useEffect(() => {
@@ -239,7 +245,10 @@ export default function HomeScreen() {
             styles.heroLayer,
             {
               top: topOffset,
-              opacity: scrollY.interpolate({ inputRange: [0, heroHeight || 1], outputRange: [1, 0.2], extrapolate: 'clamp' }),
+              opacity: Animated.multiply(
+                fade,
+                scrollY.interpolate({ inputRange: [0, heroHeight || 1], outputRange: [1, 0.2], extrapolate: 'clamp' })
+              ),
               transform: [
                 {
                   translateY: scrollY.interpolate({
@@ -281,35 +290,37 @@ export default function HomeScreen() {
                     { value: 'deposit', label: '예금 풍차' },
                   ]}
                   value={type}
-                  onChange={setType}
+                  onChange={handleTypeChange}
                 />
               )}
 
-              {/* 이번 달에 할 일이나 만기된 계좌가 있으면 할 일을 그래프보다 먼저 보여 준다 */}
-              {todoFirst && todoSection}
-              {summaryCard}
-              {!todoFirst && todoSection}
+              {/* 적금/예금을 바꾸면 짧게 흐려졌다 나타나 같은 화면 안에서 바뀌었음을 알린다 */}
+              <Animated.View style={[styles.sheetBody, { opacity: fade }]}>
+                {/* 이번 달에 할 일이나 만기된 계좌가 있으면 할 일을 그래프보다 먼저 보여 준다 */}
+                {todoFirst && todoSection}
+                {summaryCard}
+                {!todoFirst && todoSection}
 
+                {typeItems.length > 0 && (
+                  <GroupedSection title={`내 ${TYPE_LABEL[type]} ${typeItems.length}개`}>
+                    {typeItems.map((item) => (
+                      <AccountListItem
+                        key={item.account.id}
+                        item={item}
+                        outsideWindmill={!fitsWindmill(item.account, blades)}
+                        onClose={handleQuickClose}
+                        onDelete={handleQuickDelete}
+                      />
+                    ))}
+                  </GroupedSection>
+                )}
 
-              {typeItems.length > 0 && (
-                <GroupedSection title={`내 ${TYPE_LABEL[type]} ${typeItems.length}개`}>
-                  {typeItems.map((item) => (
-                    <AccountListItem
-                      key={item.account.id}
-                      item={item}
-                      outsideWindmill={!fitsWindmill(item.account, blades)}
-                      onClose={handleQuickClose}
-                      onDelete={handleQuickDelete}
-                    />
-                  ))}
-                </GroupedSection>
-              )}
-
-            {endedCount > 0 && (
-              <GroupedSection>
-                <ListRow title="종료된 계좌" detail={`${endedCount}개`} chevron onPress={() => router.push('/archive')} />
-              </GroupedSection>
-            )}
+                {endedCount > 0 && (
+                  <GroupedSection>
+                    <ListRow title="종료된 계좌" detail={`${endedCount}개`} chevron onPress={() => router.push('/archive')} />
+                  </GroupedSection>
+                )}
+              </Animated.View>
             </View>
           </>
         ) : (
@@ -342,9 +353,15 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
   content: {
+    width: '100%',
+    maxWidth: 680,
+    alignSelf: 'center',
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.sm,
     paddingBottom: spacing.xxl * 2,
+    gap: spacing.xl - 4,
+  },
+  sheetBody: {
     gap: spacing.xl - 4,
   },
   heroLayer: {
@@ -355,6 +372,10 @@ const styles = StyleSheet.create({
   },
   // 풍차 위로 덮어 올라오는 판: 배경색을 깔고 위쪽 모서리를 둥글게, 살짝 그림자를 준다.
   sheet: {
+    // iPad처럼 넓은 화면에서는 읽기 편한 폭으로 가운데 둔다.
+    width: '100%',
+    maxWidth: 680,
+    alignSelf: 'center',
     backgroundColor: colors.bg,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
