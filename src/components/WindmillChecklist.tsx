@@ -1,4 +1,4 @@
-import { SymbolView, type SFSymbol } from 'expo-symbols';
+import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View, type ColorValue } from 'react-native';
 import type { Checklist, ChecklistStep } from '../lib/checklist';
@@ -77,7 +77,7 @@ export function WindmillChecklist({
       <View style={styles.card}>
         {matured.map((account) => (
           <View key={account.id} style={[styles.row, styles.rowMatured]}>
-            <StepIcon name="calendar.badge.checkmark" color={colors.warning} />
+            <StepIcon name={{ ios: 'calendar.badge.checkmark', android: 'event_available' }} color={colors.warning} />
             <View style={styles.rowMain}>
               <Text style={styles.nowTitle} lineBreakStrategyIOS="hangul-word">
                 {Number(account.maturityDate.slice(5, 7))}월 {unit}이 만기됐어요
@@ -92,7 +92,7 @@ export function WindmillChecklist({
 
         {collapseDone ? (
           <Pressable style={styles.row} onPress={() => setShowDone(true)}>
-            <StepIcon name="checkmark.circle.fill" color={colors.success} />
+            <StepIcon name={DONE_ICON} color={colors.success} />
             <Text style={[styles.doneTitle, styles.rowMain]}>
               1~{done.length}번째 {unit} 가입 완료
             </Text>
@@ -101,7 +101,7 @@ export function WindmillChecklist({
         ) : (
           done.map((step) => (
             <Pressable key={step.index} style={styles.row} onPress={() => step.account && onOpenAccount(step.account.id)}>
-              <StepIcon name="checkmark.circle.fill" color={colors.success} />
+              <StepIcon name={DONE_ICON} color={colors.success} />
               <Text style={[styles.doneTitle, styles.rowMain]}>
                 {step.index + 1}번째 {unit} 가입 완료
               </Text>
@@ -146,7 +146,11 @@ export function WindmillChecklist({
                   accessibilityLabel={reminderDate ? `${formatDateShort(reminderDate)}에 가입 알림, 바꾸기` : `${month} 가입 알림 받기`}
                 >
                   <SymbolView
-                    name={reminderDate ? 'bell.fill' : 'bell'}
+                    name={
+                      reminderDate
+                        ? { ios: 'bell.fill', android: 'notifications_active' }
+                        : { ios: 'bell', android: 'notifications' }
+                    }
                     size={15}
                     tintColor={reminderDate ? '#FFFFFF' : colors.primary}
                     fallback={<Text style={styles.bellFallback}>🔔</Text>}
@@ -181,7 +185,9 @@ export function WindmillChecklist({
   );
 }
 
-function StepIcon({ name, color }: { name: SFSymbol; color: ColorValue }) {
+const DONE_ICON: SymbolViewProps['name'] = { ios: 'checkmark.circle.fill', android: 'check_circle' };
+
+function StepIcon({ name, color }: { name: SymbolViewProps['name']; color: ColorValue }) {
   return (
     <SymbolView
       name={name}

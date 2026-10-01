@@ -1,5 +1,6 @@
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { Platform } from 'react-native';
 import { SQLiteProvider } from 'expo-sqlite';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
@@ -10,12 +11,14 @@ import { AccountsProvider } from '../store/AccountsContext';
 import { WindmillTypeProvider } from '../store/WindmillTypeContext';
 import { colors, useDarkMode } from '../theme';
 
-/** 내용 높이만큼만 올라오는 시트 (아래 빈 영역이 생기지 않게) */
-const FIT_SHEET = {
-  presentation: 'formSheet',
-  sheetAllowedDetents: 'fitToContents',
-  sheetGrabberVisible: true,
-} as const;
+/**
+ * 내용 높이만큼만 올라오는 시트 (아래 빈 영역이 생기지 않게).
+ * Android 시트에는 제목줄(취소·저장 버튼)이 없어서 제목줄이 있는 전체 화면 모달로 연다.
+ */
+const FIT_SHEET =
+  Platform.OS === 'ios'
+    ? ({ presentation: 'formSheet', sheetAllowedDetents: 'fitToContents', sheetGrabberVisible: true } as const)
+    : ({ presentation: 'modal' } as const);
 
 export default function RootLayout() {
   // 내비게이션 막대와 화면 바탕이 시스템 다크 모드를 따르게 한다.

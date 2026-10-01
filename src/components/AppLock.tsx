@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, StyleSheet, Text, View } from 'react-native';
-import { LOCK_METHOD_LABEL, unlockApp } from '../lib/appLock';
+import { LOCK_METHOD, unlockApp } from '../lib/appLock';
 import { useAccounts } from '../store/AccountsContext';
 import { colors, spacing } from '../theme';
 import { PrimaryButton } from './ui/Controls';
@@ -58,7 +58,7 @@ function LockCover({ enabled }: { enabled: boolean }) {
     <View style={styles.cover} accessibilityViewIsModal>
       <Windmill blades={12} filled={[]} width={160} />
       <Text style={styles.title}>풍차돌리기가 잠겨 있어요</Text>
-      <PrimaryButton label={`${LOCK_METHOD_LABEL}로 잠금 해제`} onPress={() => void tryUnlock()} />
+      <PrimaryButton label={`${LOCK_METHOD.withRo} 잠금 해제`} onPress={() => void tryUnlock()} />
     </View>
   );
 }

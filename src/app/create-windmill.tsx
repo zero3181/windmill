@@ -4,6 +4,7 @@ import { Alert, StyleSheet, View } from 'react-native';
 import { Segmented } from '../components/ui/Controls';
 import { InputRow } from '../components/ui/FormRows';
 import { GroupedSection, ListRow } from '../components/ui/Grouped';
+import { HeaderActions } from '../components/ui/HeaderActions';
 import { RampChart } from '../components/RampChart';
 import { Windmill } from '../components/Windmill';
 import { allBlades } from '../lib/blades';
@@ -78,6 +79,18 @@ export default function CreateWindmillScreen() {
       Alert.alert('금액을 입력해 주세요', `${AMOUNT_TITLE[type]}을 알려 주세요.`);
       return;
     }
+    // 새로 만들다가 이미 있는 종류를 고르면 그 풍차를 덮어쓰게 되므로 먼저 묻는다.
+    if (settings.goals[type] && editing !== settings.goals[type]) {
+      Alert.alert(`${unit} 풍차가 이미 있어요`, '지금 정한 날개 수와 금액으로 바꿀까요?', [
+        { text: '취소', style: 'cancel' },
+        { text: '바꾸기', onPress: () => void save() },
+      ]);
+      return;
+    }
+    await save();
+  }
+
+  async function save() {
     await updateSettings({
       goals: { ...settings.goals, [type]: { blades, total } },
       windmillSize: { ...settings.windmillSize, [type]: blades },
@@ -103,14 +116,10 @@ export default function CreateWindmillScreen() {
   return (
     <>
       <Stack.Screen options={{ title: editing ? `${unit} 풍차 수정` : '풍차 만들기' }} />
-      <Stack.Toolbar placement="left">
-        <Stack.Toolbar.Button onPress={() => router.back()}>취소</Stack.Toolbar.Button>
-      </Stack.Toolbar>
-      <Stack.Toolbar placement="right">
-        <Stack.Toolbar.Button variant="done" onPress={handleSave}>
-          {editing ? '저장' : '만들기'}
-        </Stack.Toolbar.Button>
-      </Stack.Toolbar>
+      <HeaderActions
+        left={{ label: '취소', onPress: () => router.back() }}
+        right={{ label: editing ? '저장' : '만들기', onPress: handleSave, done: true }}
+      />
 
       <FormScrollView contentContainerStyle={styles.content}>
         <View style={styles.art}>

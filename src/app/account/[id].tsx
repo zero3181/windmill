@@ -2,6 +2,7 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Card, GroupedSection, ListRow } from '../../components/ui/Grouped';
+import { HeaderActions } from '../../components/ui/HeaderActions';
 import {
   calcAccountFinancials,
   countElapsedInstallments,
@@ -99,9 +100,7 @@ export default function AccountDetailScreen() {
   return (
     <>
       <Stack.Screen options={{ title: account.name }} />
-      <Stack.Toolbar placement="right">
-        <Stack.Toolbar.Button onPress={() => router.push(`/edit-account/${account.id}`)}>편집</Stack.Toolbar.Button>
-      </Stack.Toolbar>
+      <HeaderActions right={{ label: '편집', onPress: () => router.push(`/edit-account/${account.id}`) }} />
 
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.content}>
         <Card style={styles.hero}>

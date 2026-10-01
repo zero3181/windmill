@@ -1,8 +1,11 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { LinkButton, PrimaryButton } from '../components/ui/Controls';
+import { DateRow } from '../components/ui/FormRows';
+import { GroupedSection } from '../components/ui/Grouped';
+import { HeaderActions } from '../components/ui/HeaderActions';
 import { addDays, addMonthsClamped, compareISODates, parseISODate, todayKST } from '../lib/calc';
 import { formatDateShort } from '../lib/format';
 import { askNotificationPermission } from '../lib/notifications';
@@ -70,9 +73,7 @@ export default function StepReminderScreen() {
 
   return (
     <>
-      <Stack.Toolbar placement="left">
-        <Stack.Toolbar.Button onPress={() => router.back()}>닫기</Stack.Toolbar.Button>
-      </Stack.Toolbar>
+      <HeaderActions left={{ label: '닫기', onPress: () => router.back() }} />
       <Stack.Screen options={{ title: `${label} 알림` }} />
       {/* 시트 제목줄 아래에서 시작하도록 스크롤 뷰의 자동 여백을 쓴다 (내용만큼만 차지) */}
       <ScrollView
@@ -80,15 +81,22 @@ export default function StepReminderScreen() {
         contentInsetAdjustmentBehavior="automatic"
         contentContainerStyle={styles.content}
       >
-        <DateTimePicker
-          style={styles.calendar}
-          value={toDate(date)}
-          mode="date"
-          display="inline"
-          locale="ko-KR"
-          minimumDate={toDate(today)}
-          onChange={(_e, picked) => picked && setDate(toISO(picked))}
-        />
+        {Platform.OS === 'ios' ? (
+          <DateTimePicker
+            style={styles.calendar}
+            value={toDate(date)}
+            mode="date"
+            display="inline"
+            locale="ko-KR"
+            minimumDate={toDate(today)}
+            onChange={(_e, picked) => picked && setDate(toISO(picked))}
+          />
+        ) : (
+          // Android에는 화면 안에 넣는 달력이 없어서, 날짜 행을 누르면 시스템 달력을 연다.
+          <GroupedSection>
+            <DateRow title="알림 날짜" value={date} onChange={setDate} minimumDate={today} />
+          </GroupedSection>
+        )}
         <Text style={styles.when}>{formatDateShort(date)} 9시</Text>
         <View style={styles.actions}>
           <PrimaryButton label="알림 받기" onPress={handleSave} />

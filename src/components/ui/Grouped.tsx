@@ -105,7 +105,13 @@ export function ListRow({
 export function Chevron({ direction = 'right' }: { direction?: 'right' | 'down' | 'up' }) {
   return (
     <SymbolView
-      name={direction === 'right' ? 'chevron.right' : direction === 'down' ? 'chevron.down' : 'chevron.up'}
+      name={
+        direction === 'right'
+          ? { ios: 'chevron.right', android: 'chevron_right' }
+          : direction === 'down'
+            ? { ios: 'chevron.down', android: 'expand_more' }
+            : { ios: 'chevron.up', android: 'expand_less' }
+      }
       size={13}
       weight="semibold"
       tintColor={colors.textFaint}

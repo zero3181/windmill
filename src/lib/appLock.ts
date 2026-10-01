@@ -12,8 +12,11 @@ function loadModule(): LocalAuthentication | null {
   }
 }
 
-/** 설정·잠금 화면에 쓰는 이름 */
-export const LOCK_METHOD_LABEL = Platform.OS === 'ios' ? 'Face ID' : '생체 인증';
+/** 설정·잠금 화면에 쓰는 이름. 받침에 따라 조사가 달라 조사까지 붙여 둔다. */
+export const LOCK_METHOD =
+  Platform.OS === 'ios'
+    ? { withRo: 'Face ID로', withObject: 'Face ID를' }
+    : { withRo: '생체 인증으로', withObject: '생체 인증을' };
 
 /** 이 기기에서 생체 인증을 쓸 수 있는지 (센서가 있고 등록돼 있어야 한다) */
 export async function canUseAppLock(): Promise<boolean> {

@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Switch } from 'react-native';
 import { GroupedSection, ListRow } from '../components/ui/Grouped';
 import { exportBackup, pickAndParseBackup } from '../lib/backup';
-import { canUseAppLock, LOCK_METHOD_LABEL, unlockApp } from '../lib/appLock';
+import { canUseAppLock, LOCK_METHOD, unlockApp } from '../lib/appLock';
 import { askNotificationPermission } from '../lib/notifications';
 import { useAccounts } from '../store/AccountsContext';
 import { colors, spacing } from '../theme';
@@ -72,7 +72,7 @@ export default function SettingsScreen() {
   async function handleAppLock(on: boolean) {
     if (on) {
       if (!(await canUseAppLock())) {
-        Alert.alert(`${LOCK_METHOD_LABEL}를 쓸 수 없어요`, `기기 설정에서 ${LOCK_METHOD_LABEL}를 먼저 등록해 주세요.`);
+        Alert.alert(`${LOCK_METHOD.withObject} 쓸 수 없어요`, `기기 설정에서 ${LOCK_METHOD.withObject} 먼저 등록해 주세요.`);
         return;
       }
       // 켜기 전에 한 번 인증해, 이 기기에서 잠금을 풀 수 있는지 확인한다.
@@ -105,7 +105,7 @@ export default function SettingsScreen() {
               title={goal ? `${label} 수정` : `${label} 만들기`}
               detail={goal ? `날개 ${goal.blades}개` : undefined}
               chevron
-              onPress={() => router.push({ pathname: '/create-windmill', params: goal ? { type: t } : {} })}
+              onPress={() => router.push({ pathname: '/create-windmill', params: { type: t } })}
             />
           );
         })}
@@ -128,7 +128,7 @@ export default function SettingsScreen() {
 
       <GroupedSection title="보안" footer="앱을 열 때와 다른 앱에서 돌아올 때 잠금을 풀어야 해요.">
         <ListRow
-          title={`${LOCK_METHOD_LABEL}로 잠그기`}
+          title={`${LOCK_METHOD.withRo} 잠그기`}
           right={
             <Switch value={settings.appLock} onValueChange={(v) => void handleAppLock(v)} trackColor={{ true: colors.success }} />
           }

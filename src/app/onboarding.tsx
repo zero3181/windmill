@@ -1,4 +1,4 @@
-import { SymbolView, type SFSymbol } from 'expo-symbols';
+import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import { useRouter } from 'expo-router';
 import React, { useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
@@ -8,10 +8,10 @@ import { colors, radius, spacing } from '../theme';
 
 const PAGE_COUNT = 2;
 
-const BENEFITS: { icon: SFSymbol; title: string; body: string }[] = [
-  { icon: 'calendar', title: '매달 목돈이 돌아와요', body: '급하게 돈이 필요해도 전부 깨지 않고, 그달 만기분만 쓰면 돼요.' },
-  { icon: 'chart.line.uptrend.xyaxis', title: '금리 변화에 덜 흔들려요', body: '매달 그때 금리로 새로 가입하니, 금리가 오르면 바로 반영돼요.' },
-  { icon: 'leaf', title: '저축이 습관이 돼요', body: '매달 하나씩 늘어나는 계좌를 보며 꾸준히 모을 수 있어요.' },
+const BENEFITS: { icon: SymbolViewProps['name']; title: string; body: string }[] = [
+  { icon: { ios: 'calendar', android: 'calendar_month' }, title: '매달 목돈이 돌아와요', body: '급하게 돈이 필요해도 전부 깨지 않고, 그달 만기분만 쓰면 돼요.' },
+  { icon: { ios: 'chart.line.uptrend.xyaxis', android: 'trending_up' }, title: '금리 변화에 덜 흔들려요', body: '매달 그때 금리로 새로 가입하니, 금리가 오르면 바로 반영돼요.' },
+  { icon: { ios: 'leaf', android: 'eco' }, title: '저축이 습관이 돼요', body: '매달 하나씩 늘어나는 계좌를 보며 꾸준히 모을 수 있어요.' },
 ];
 
 export default function OnboardingScreen() {

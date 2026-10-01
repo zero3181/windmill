@@ -105,7 +105,18 @@ function toISO(date: Date): string {
 }
 
 /** 날짜 행. iOS는 컴팩트 날짜 선택기를 행 오른쪽에 두고, Android는 눌러서 연다. */
-export function DateRow({ title, value, onChange }: { title: string; value: string; onChange: (iso: string) => void }) {
+export function DateRow({
+  title,
+  value,
+  onChange,
+  minimumDate,
+}: {
+  title: string;
+  value: string;
+  onChange: (iso: string) => void;
+  /** 고를 수 있는 가장 이른 날 (YYYY-MM-DD) */
+  minimumDate?: string;
+}) {
   const [androidOpen, setAndroidOpen] = useState(false);
   // iOS 컴팩트 선택기는 날짜를 골라도 달력이 떠 있어서, 고르면 선택기를 새로 그려 달력을 닫는다.
   const [pickerKey, setPickerKey] = useState(0);
@@ -120,6 +131,7 @@ export function DateRow({ title, value, onChange }: { title: string; value: stri
           mode="date"
           display="compact"
           locale="ko-KR"
+          minimumDate={minimumDate ? toDate(minimumDate) : undefined}
           onChange={(e, date) => {
             if (!date) return;
             onChange(toISO(date));
@@ -139,6 +151,7 @@ export function DateRow({ title, value, onChange }: { title: string; value: stri
         <DateTimePicker
           value={toDate(value)}
           mode="date"
+          minimumDate={minimumDate ? toDate(minimumDate) : undefined}
           onChange={(_e, date) => {
             setAndroidOpen(false);
             if (date) onChange(toISO(date));

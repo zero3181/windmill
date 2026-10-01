@@ -1,4 +1,4 @@
-import { Stack, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { BANKS } from '../lib/banks';
@@ -10,6 +10,7 @@ import { BankBadge } from './BankBadge';
 import { Segmented } from './ui/Controls';
 import { DateRow, InputRow, PickerRow } from './ui/FormRows';
 import { Chevron, GroupedSection, ListRow } from './ui/Grouped';
+import { HeaderActions } from './ui/HeaderActions';
 import { FormScrollView } from './ui/FormScrollView';
 
 interface Props {
@@ -215,14 +216,10 @@ export function AccountForm({
 
   return (
     <>
-      <Stack.Toolbar placement="left">
-        <Stack.Toolbar.Button onPress={() => router.back()}>취소</Stack.Toolbar.Button>
-      </Stack.Toolbar>
-      <Stack.Toolbar placement="right">
-        <Stack.Toolbar.Button variant="done" disabled={submitting} onPress={handleSubmit}>
-          {submitLabel}
-        </Stack.Toolbar.Button>
-      </Stack.Toolbar>
+      <HeaderActions
+        left={{ label: '취소', onPress: () => router.back() }}
+        right={{ label: submitLabel, onPress: handleSubmit, done: true, disabled: submitting }}
+      />
 
       <FormScrollView ref={scrollRef} contentContainerStyle={styles.content}>
         {banner && (
