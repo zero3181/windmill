@@ -4,16 +4,12 @@ import { StyleSheet, Text, View } from 'react-native';
 import { colors, spacing } from '../theme';
 import { PrimaryButton } from './ui/Controls';
 import { Card } from './ui/Grouped';
-import { Windmill } from './Windmill';
 
 /** 아직 풍차도 계좌도 없을 때: 풍차 만들기로 시작한다. */
 export function EmptyState() {
   const router = useRouter();
   return (
     <Card style={styles.card}>
-      <View style={styles.art}>
-        <Windmill blades={12} filled={[]} width={200} />
-      </View>
       <Text style={styles.title}>나만의 풍차를 만들어 보세요</Text>
       <Text style={styles.desc}>날개 수와 금액만 정하면 할 일을 알려드려요.</Text>
       <View style={styles.actions}>
@@ -28,9 +24,6 @@ const styles = StyleSheet.create({
   card: {
     gap: spacing.sm,
     alignItems: 'center',
-  },
-  art: {
-    marginBottom: spacing.sm,
   },
   title: {
     fontSize: 22,
