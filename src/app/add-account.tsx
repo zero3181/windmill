@@ -2,16 +2,18 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useMemo } from 'react';
 import { StyleSheet, Text } from 'react-native';
 import { AccountForm } from '../components/AccountForm';
-import { Card } from '../components/ui/Grouped';
+import { Card, GroupedSection, ListRow } from '../components/ui/Grouped';
 import { formatManwon } from '../lib/format';
 import { ensureNotificationSetup } from '../lib/notifications';
 import { useAccounts } from '../store/AccountsContext';
+import { useWindmillType } from '../store/WindmillTypeContext';
 import { colors, spacing } from '../theme';
 import type { Account, NewAccountInput } from '../types/account';
 
 export default function NewAccountScreen() {
   const router = useRouter();
   const { accounts, addAccount, settings } = useAccounts();
+  const { setType } = useWindmillType();
   /** step: 풍차 체크리스트에서 들어온 단계 번호 (1부터) */
   const params = useLocalSearchParams<{ prefill?: string; from?: string; step?: string }>();
 
@@ -37,6 +39,14 @@ export default function NewAccountScreen() {
   const step = Number(params.step) || 0;
   const unit = prefill?.type === 'deposit' ? '예금' : '적금';
 
+  // 가입 페이지 위에 금리 비교를 띄운다. 상품을 고르면 폼에 은행·상품명·금리가 채워진다.
+  function openRates() {
+    const formType = prefill?.type ?? 'savings';
+    setType(formType);
+    const term = prefill?.termMonths ?? settings.goals[formType]?.blades ?? 12;
+    router.push({ pathname: '/pick-product', params: { term: String(term) } });
+  }
+
   async function handleSubmit(input: NewAccountInput) {
     // 만기·납입일 알림에 쓸 권한은 계좌를 처음 등록하는 이 순간에 묻는다.
     await ensureNotificationSetup(true).catch(() => false);
@@ -57,15 +67,20 @@ export default function NewAccountScreen() {
         lockedType={step > 0}
         banner={params.from === 'rates' ? '금리 비교에서 고른 상품 정보가 채워졌어요' : undefined}
         header={
-          step > 0 && prefill ? (
-            <Card style={styles.guide}>
-              <Text style={styles.guideTitle}>은행 앱에서 이 조건으로 가입하세요</Text>
-              <Text style={styles.guideBody}>
-                {prefill.termMonths}개월 {unit} · {unit === '적금' ? '월 ' : ''}
-                {formatManwon(prefill.amount ?? 0)}
-              </Text>
-            </Card>
-          ) : null
+          <>
+            {step > 0 && prefill ? (
+              <Card style={styles.guide}>
+                <Text style={styles.guideTitle}>이 조건으로 가입하세요</Text>
+                <Text style={styles.guideBody}>
+                  {prefill.termMonths}개월 {unit} · {unit === '적금' ? '월 ' : ''}
+                  {formatManwon(prefill.amount ?? 0)}
+                </Text>
+              </Card>
+            ) : null}
+            <GroupedSection>
+              <ListRow title="금리 높은 상품 보기" tint="primary" chevron onPress={openRates} />
+            </GroupedSection>
+          </>
         }
         onSubmit={handleSubmit}
       />

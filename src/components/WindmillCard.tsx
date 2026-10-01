@@ -8,6 +8,7 @@ import { isSampleAccount } from '../lib/sampleData';
 import { WINDMILL_SIZES, type WindmillSize } from '../lib/settings';
 import { colors, radius, spacing } from '../theme';
 import { Card } from './ui/Grouped';
+import type { AccountType } from '../types/account';
 import { bladeColor } from './Windmill';
 
 const MIN_MONTH_WIDTH = 12;
@@ -16,6 +17,8 @@ const BAR_HEIGHT = 20;
 
 interface Props {
   windmill: Windmill;
+  /** 적금/예금: 막대 색을 풍차 색과 맞춘다 */
+  type: AccountType;
   /** 풍차 날개 수 (6 또는 12개월) */
   size: WindmillSize;
   /** 없으면 날개 수 토글을 숨긴다 (풍차 목표가 있으면 날개 수는 풍차 수정에서 바꾼다) */
@@ -26,7 +29,7 @@ interface Props {
 }
 
 /** 내 풍차 요약: 총 개수 · 원금 · 가입월~만기월 계단 그래프. 풍차 그림은 홈 위쪽 WindmillHero에 있다. */
-export function WindmillCard({ windmill, size, onSizeChange, sample = false, emptyLabel }: Props) {
+export function WindmillCard({ windmill, type, size, onSizeChange, sample = false, emptyLabel }: Props) {
   return (
     <Card>
       <View style={styles.header}>
@@ -63,14 +66,24 @@ export function WindmillCard({ windmill, size, onSizeChange, sample = false, emp
       {windmill.bars.length === 0 ? (
         <Text style={styles.empty}>{emptyLabel}</Text>
       ) : (
-        <GanttChart windmill={windmill} blades={size} interactive={!sample} />
+        <GanttChart windmill={windmill} blades={size} type={type} interactive={!sample} />
       )}
     </Card>
   );
 }
 
 /** 가입월~만기월 막대. 막대마다 자기가 채우는 풍차 날개와 같은 색을 쓴다. */
-function GanttChart({ windmill, blades, interactive }: { windmill: Windmill; blades: number; interactive: boolean }) {
+function GanttChart({
+  windmill,
+  blades,
+  type,
+  interactive,
+}: {
+  windmill: Windmill;
+  blades: number;
+  type: AccountType;
+  interactive: boolean;
+}) {
   const router = useRouter();
   const [viewWidth, setViewWidth] = useState(0);
   const { bars, monthCount, rangeStart } = windmill;
@@ -125,13 +138,13 @@ function GanttChart({ windmill, blades, interactive }: { windmill: Windmill; bla
                         top: row * ROW_HEIGHT + (ROW_HEIGHT - BAR_HEIGHT) / 2,
                         left,
                         width,
-                        backgroundColor: barColor(bar.bladeIndex, blades, 0.18),
+                        backgroundColor: barColor(bar.bladeIndex, blades, type, 0.18),
                       },
                     ]}
                     disabled={!interactive || isSampleAccount(account.id)}
                     onPress={() => router.push(`/account/${account.id}`)}
                   >
-                    <View style={[styles.barElapsed, { width: elapsed, backgroundColor: barColor(bar.bladeIndex, blades) }]} />
+                    <View style={[styles.barElapsed, { width: elapsed, backgroundColor: barColor(bar.bladeIndex, blades, type) }]} />
                   </Pressable>
                 );
               })}
@@ -146,8 +159,8 @@ function GanttChart({ windmill, blades, interactive }: { windmill: Windmill; bla
 }
 
 /** 막대 색: 채우는 날개와 같은 색. 풍차 주기와 기간이 다른 계좌(-1)는 회색. */
-function barColor(bladeIndex: number, blades: number, alpha = 1): string {
-  return bladeIndex < 0 ? `rgba(142, 142, 147, ${alpha})` : bladeColor(bladeIndex, blades, alpha);
+function barColor(bladeIndex: number, blades: number, type: AccountType, alpha = 1): string {
+  return bladeIndex < 0 ? `rgba(142, 142, 147, ${alpha})` : bladeColor(bladeIndex, blades, alpha, type);
 }
 
 const styles = StyleSheet.create({

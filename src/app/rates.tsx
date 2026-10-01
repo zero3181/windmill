@@ -9,11 +9,13 @@ import { useAccounts } from '../store/AccountsContext';
 import { useWindmillType } from '../store/WindmillTypeContext';
 import { colors, radius, spacing } from '../theme';
 import type { AccountType } from '../types/account';
+import { pickProduct } from '../lib/productPick';
 
 const TERM_OPTIONS = [6, 12];
 const LIST_LIMIT = 30;
 
-export default function RatesScreen() {
+/** pick: 가입 페이지 위에 시트로 띄워, 고른 상품을 가입 페이지로 돌려준다 (pick-product 경로). */
+export default function RatesScreen({ pick = false }: { pick?: boolean }) {
   const router = useRouter();
   /** step·amount: 풍차 체크리스트에서 들어왔을 때 그 단계와 계좌당 금액 (상품을 고르면 그대로 이어서 등록) */
   const params = useLocalSearchParams<{ term?: string; count?: string; step?: string; amount?: string }>();
@@ -87,6 +89,11 @@ export default function RatesScreen() {
   const others = planCount > 0 ? ranked.slice(planCount) : ranked;
 
   function handleRegister(p: FinProduct) {
+    if (pick) {
+      pickProduct({ bank: p.company, name: p.name, rate: p.rate, termMonths: p.termMonths });
+      router.back();
+      return;
+    }
     const amount = Number(params.amount) || undefined;
     const prefill = { bank: p.company, name: p.name, type, rate: p.rate, termMonths: p.termMonths, amount };
     router.push({
@@ -103,6 +110,7 @@ export default function RatesScreen() {
       open={expanded === p.id}
       onToggle={() => setExpanded((cur) => (cur === p.id ? null : p.id))}
       onRegister={() => handleRegister(p)}
+      registerLabel={pick ? '이 상품 고르기' : '이 상품으로 등록'}
     />
   );
 
@@ -177,12 +185,14 @@ function ProductRow({
   open,
   onToggle,
   onRegister,
+  registerLabel,
 }: {
   rank: number;
   product: FinProduct;
   open: boolean;
   onToggle: () => void;
   onRegister: () => void;
+  registerLabel: string;
 }) {
   const sub = [p.company, p.reserveType, p.maxRate > p.rate ? `최고 ${p.maxRate.toFixed(2)}%` : undefined]
     .filter(Boolean)
@@ -211,7 +221,7 @@ function ProductRow({
             <Detail label="우대 조건" value={p.specialCondition} />
           )}
           {p.note && !/^(없음|해당없음|-|\.)$/.test(p.note) && <Detail label="참고" value={p.note} />}
-          <PrimaryButton label="이 상품으로 등록" onPress={onRegister} />
+          <PrimaryButton label={registerLabel} onPress={onRegister} />
         </View>
       )}
     </View>

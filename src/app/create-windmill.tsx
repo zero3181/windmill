@@ -15,8 +15,11 @@ import type { AccountType } from '../types/account';
 import { FormScrollView } from '../components/ui/FormScrollView';
 
 const UNIT: Record<AccountType, string> = { savings: '적금', deposit: '예금' };
-/** 처음 만들 때 채워 둘 금액: 적금은 매달 60만 원, 예금은 6천만 원 */
-const DEFAULT_TOTAL: Record<AccountType, number> = { savings: 600_000, deposit: 60_000_000 };
+/** 처음 만들 때 채워 둘 금액 (계좌 하나에 월 10만 원 / 1천만 원이 되도록 날개 수에 맞춘다) */
+const DEFAULT_TOTAL: Record<AccountType, Record<WindmillSize, number>> = {
+  savings: { 6: 600_000, 12: 1_200_000 },
+  deposit: { 6: 60_000_000, 12: 120_000_000 },
+};
 
 /** 12개월은 '1년'처럼 읽기 쉽게 */
 function termLabel(months: number): string {
@@ -37,13 +40,18 @@ export default function CreateWindmillScreen() {
   const editing = params.type ? settings.goals[params.type] : undefined;
   const [type, setType] = useState<AccountType>(params.type ?? 'savings');
   const [blades, setBlades] = useState<WindmillSize>(editing?.blades ?? 12);
-  const [total, setTotal] = useState(editing?.total ?? DEFAULT_TOTAL[type]);
+  const [total, setTotal] = useState(editing?.total ?? DEFAULT_TOTAL[type][editing?.blades ?? 12]);
   const [totalTouched, setTotalTouched] = useState(Boolean(editing));
 
   function handleTypeChange(next: AccountType) {
     setType(next);
     // 금액을 아직 고치지 않았으면 종류에 맞는 초기 금액으로 바꾼다.
-    if (!totalTouched) setTotal(DEFAULT_TOTAL[next]);
+    if (!totalTouched) setTotal(DEFAULT_TOTAL[next][blades]);
+  }
+
+  function handleBladesChange(next: WindmillSize) {
+    setBlades(next);
+    if (!totalTouched) setTotal(DEFAULT_TOTAL[type][next]);
   }
 
   const perAccount = Math.floor(total / blades);
@@ -99,7 +107,7 @@ export default function CreateWindmillScreen() {
 
       <FormScrollView contentContainerStyle={styles.content}>
         <View style={styles.art}>
-          <Windmill blades={blades} filled={allBlades(blades)} width={180} />
+          <Windmill blades={blades} filled={allBlades(blades)} width={180} type={type} />
         </View>
 
         {!editing && (
@@ -116,7 +124,7 @@ export default function CreateWindmillScreen() {
         )}
 
         <GroupedSection
-          title="날개 수"
+          title="날개 수 (만기 개월 수)"
           bare
           footer={
             `매달 ${termLabel(blades)} 만기 ${unit}을 ${blades}번 가입해요.` +
@@ -126,20 +134,19 @@ export default function CreateWindmillScreen() {
           <Segmented
             options={WINDMILL_SIZES.map((s) => ({ value: String(s), label: `${s}개` }))}
             value={String(blades)}
-            onChange={(v) => setBlades(Number(v) as WindmillSize)}
+            onChange={(v) => handleBladesChange(Number(v) as WindmillSize)}
           />
         </GroupedSection>
 
-        <GroupedSection title="금액" footer={amountFooter}>
+        <GroupedSection title={type === 'savings' ? '매달 저금할 금액' : '총 저금액'} footer={amountFooter}>
           <InputRow
-            title={type === 'savings' ? '매달 저금할 금액' : '총 저금액'}
             value={total > 0 ? total.toLocaleString('ko-KR') : ''}
             onChangeText={(t) => {
               setTotal(parseAmount(t));
               setTotalTouched(true);
             }}
             keyboardType="number-pad"
-            placeholder={DEFAULT_TOTAL[type].toLocaleString('ko-KR')}
+            placeholder={DEFAULT_TOTAL[type][blades].toLocaleString('ko-KR')}
             suffix="원"
           />
         </GroupedSection>

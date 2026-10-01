@@ -1,17 +1,21 @@
 import { Stack, useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { BANKS } from '../lib/banks';
 import { computeMaturityDate, parseISODate, todayKST } from '../lib/calc';
+import { onProductPick, type ProductPick } from '../lib/productPick';
 import { colors, radius, spacing } from '../theme';
 import { type Account, type AccountType, type NewAccountInput, type TaxType } from '../types/account';
 import { Segmented } from './ui/Controls';
-import { DateRow, InputRow } from './ui/FormRows';
+import { DateRow, InputRow, PickerRow } from './ui/FormRows';
 import { Chevron, GroupedSection, ListRow } from './ui/Grouped';
 import { FormScrollView } from './ui/FormScrollView';
 
 interface Props {
   initial?: Partial<Account>;
+  /** 이미 등록한 계좌의 은행 (목록에 없던 이름도 다시 고를 수 있게 선택지에 더한다) */
   knownBanks: string[];
+
   defaultTaxType: TaxType;
   submitLabel: string;
   /** 폼 위에 띄울 안내 (예: 금리 비교에서 고른 상품 정보가 채워졌다는 안내) */
@@ -31,6 +35,11 @@ interface Props {
 
 const TAX_SHORT: Record<TaxType, string> = { general: '일반과세', preferential: '세금우대', exempt: '비과세' };
 const UNIT: Record<AccountType, string> = { savings: '적금', deposit: '예금' };
+const CUSTOM_BANK = '__custom__';
+
+function isListedBank(name: string, knownBanks: string[]): boolean {
+  return (BANKS as readonly string[]).includes(name) || knownBanks.includes(name);
+}
 
 /** 별칭을 비워 두면 '9월 적금'처럼 가입 달로 이름을 붙인다. */
 function defaultName(type: AccountType, startDate: string): string {
@@ -78,7 +87,9 @@ export function AccountForm({
         : initial.maturityDate
       : null
   );
-  const [showBankSuggestions, setShowBankSuggestions] = useState(false);
+  // 목록에 없는 은행 이름은 '직접 입력'으로 받는다.
+  const [customBank, setCustomBank] = useState(Boolean(initial?.bank) && !isListedBank(initial?.bank ?? '', knownBanks));
+  const [bankOpen, setBankOpen] = useState(false);
   const [showDetails, setShowDetails] = useState(detailsOpen);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -90,10 +101,31 @@ export function AccountForm({
   );
   const maturityDate = maturityOverride ?? computedMaturity;
 
-  const bankSuggestions = useMemo(() => {
-    if (!bank) return [];
-    return knownBanks.filter((b) => b.includes(bank) && b !== bank).slice(0, 5);
-  }, [bank, knownBanks]);
+  const bankOptions = useMemo(
+    () => [
+      ...[...BANKS, ...knownBanks.filter((b) => !(BANKS as readonly string[]).includes(b))].map((b) => ({ value: b, label: b })),
+      { value: CUSTOM_BANK, label: '직접 입력' },
+    ],
+    [knownBanks]
+  );
+
+  // 이 폼 위에 띄운 금리 비교에서 상품을 고르면 은행·상품명·금리를 채운다. 금리는 세부 정보에 있어 함께 펼친다.
+  useEffect(
+    () =>
+      onProductPick((pick: ProductPick) => {
+        setBank(pick.bank);
+        setCustomBank(!isListedBank(pick.bank, knownBanks));
+        setName(pick.name);
+        setRateText(String(pick.rate));
+        if (!lockedType && [6, 12].includes(pick.termMonths)) {
+          setTermMonths(pick.termMonths);
+          setMaturityOverride(null);
+          setTermTouched(true);
+        }
+        setShowDetails(true);
+      }),
+    [knownBanks, lockedType]
+  );
 
   function handleStartDateChange(iso: string) {
     setStartDate(iso);
@@ -226,28 +258,19 @@ export function AccountForm({
               />
             </View>
           )}
-          <InputRow
+          <PickerRow
             title="은행"
-            value={bank}
-            onChangeText={(v) => {
-              setBank(v);
-              setShowBankSuggestions(true);
-            }}
-            onFocus={() => setShowBankSuggestions(true)}
+            options={bankOptions}
+            value={customBank ? CUSTOM_BANK : bank}
             placeholder="선택"
+            onChange={(v) => {
+              setCustomBank(v === CUSTOM_BANK);
+              setBank(v === CUSTOM_BANK ? '' : v);
+            }}
+            open={bankOpen}
+            onToggle={() => setBankOpen((o) => !o)}
           />
-          {showBankSuggestions &&
-            bankSuggestions.map((b) => (
-              <ListRow
-                key={b}
-                title={b}
-                tint="primary"
-                onPress={() => {
-                  setBank(b);
-                  setShowBankSuggestions(false);
-                }}
-              />
-            ))}
+          {customBank && <InputRow title="은행 이름" value={bank} onChangeText={setBank} placeholder="OO저축은행" />}
         </GroupedSection>
 
         <Pressable style={styles.detailsToggle} onPress={() => setShowDetails((v) => !v)} hitSlop={8}>

@@ -15,6 +15,7 @@ export function PickerRow<T extends string | number>({
   onChange,
   open,
   onToggle,
+  placeholder,
 }: {
   title: string;
   options: { value: T; label: string }[];
@@ -22,13 +23,17 @@ export function PickerRow<T extends string | number>({
   onChange: (value: T) => void;
   open: boolean;
   onToggle: () => void;
+  /** 아직 고르지 않았을 때 보일 글자 */
+  placeholder?: string;
 }) {
   const current = options.find((o) => o.value === value);
   return (
     <View>
       <Pressable style={({ pressed }) => [styles.row, pressed && styles.pressed]} onPress={onToggle}>
         <Text style={styles.title}>{title}</Text>
-        <Text style={[styles.detail, open && styles.detailOpen]}>{current?.label}</Text>
+        <Text style={[styles.detail, open && styles.detailOpen, !current && styles.detailPlaceholder]}>
+          {current?.label ?? placeholder}
+        </Text>
         <Chevron direction={open ? 'up' : 'down'} />
       </Pressable>
       {open && (
@@ -50,7 +55,7 @@ export function PickerRow<T extends string | number>({
   );
 }
 
-/** 제목 왼쪽, 입력값 오른쪽 정렬의 폼 행. */
+/** 제목 왼쪽, 입력값 오른쪽 정렬의 폼 행. 제목이 없으면 입력값만 행 전체에 둔다. */
 export function InputRow({
   title,
   value,
@@ -61,7 +66,7 @@ export function InputRow({
   highlighted = false,
   onFocus,
 }: {
-  title: string;
+  title?: string;
   value: string;
   onChangeText: (text: string) => void;
   placeholder?: string;
@@ -72,15 +77,15 @@ export function InputRow({
 }) {
   return (
     <View style={styles.row}>
-      <Text style={styles.title}>{title}</Text>
+      {title ? <Text style={styles.title}>{title}</Text> : null}
       <TextInput
-        style={[styles.input, highlighted && styles.inputHighlighted]}
+        style={[styles.input, !title && styles.inputBare, highlighted && styles.inputHighlighted]}
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
         placeholderTextColor={colors.textFaint}
         keyboardType={keyboardType}
-        textAlign="right"
+        textAlign={title ? 'right' : 'left'}
         onFocus={onFocus}
       />
       {suffix ? <Text style={styles.suffix}>{suffix}</Text> : null}
@@ -161,6 +166,9 @@ const styles = StyleSheet.create({
     fontSize: 17,
     color: colors.textMuted,
   },
+  detailPlaceholder: {
+    color: colors.textFaint,
+  },
   detailOpen: {
     color: colors.primary,
   },
@@ -176,6 +184,11 @@ const styles = StyleSheet.create({
     fontSize: 17,
     color: colors.textMuted,
     paddingVertical: 6,
+  },
+  inputBare: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: colors.text,
   },
   inputHighlighted: {
     color: colors.primary,

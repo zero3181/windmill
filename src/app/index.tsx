@@ -130,7 +130,7 @@ export default function HomeScreen() {
           <EmptyState />
         ) : (
           <>
-            <WindmillHero blades={blades} filled={windmill.filledBlades} />
+            <WindmillHero blades={blades} filled={windmill.filledBlades} type={type} />
 
             {showTypeSwitch && (
               <Segmented
@@ -145,6 +145,7 @@ export default function HomeScreen() {
 
             <WindmillCard
               windmill={windmill}
+              type={type}
               size={blades}
               onSizeChange={
                 goal

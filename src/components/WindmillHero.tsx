@@ -2,13 +2,14 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { allBlades, bladeMonth } from '../lib/blades';
 import { colors, spacing } from '../theme';
+import type { AccountType } from '../types/account';
 import { Windmill } from './Windmill';
 
 /** 비어 있는 달이 이만큼 이하로 남으면 어느 달인지 알려 준다. (6날개는 한 자리가 두 달을 뜻해 이름을 붙이지 않는다) */
 const NAME_MISSING_UP_TO = 3;
 
 /** 홈 맨 위의 큰 풍차와 한 줄 안내. */
-export function WindmillHero({ blades, filled }: { blades: number; filled: number[] }) {
+export function WindmillHero({ blades, filled, type }: { blades: number; filled: number[]; type: AccountType }) {
   const filledSet = new Set(filled);
   const missing = allBlades(blades)
     .filter((p) => !filledSet.has(p))
@@ -26,7 +27,7 @@ export function WindmillHero({ blades, filled }: { blades: number; filled: numbe
 
   return (
     <View style={styles.hero}>
-      <Windmill blades={blades} filled={filled} width={238} />
+      <Windmill blades={blades} filled={filled} width={238} type={type} />
       <Text style={styles.caption}>{caption}</Text>
     </View>
   );

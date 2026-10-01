@@ -29,6 +29,7 @@ export default function RootLayout() {
                   <Stack.Screen name="rates" options={{ title: '금리 비교' }} />
                   <Stack.Screen name="create-windmill" options={{ title: '풍차 만들기', presentation: 'modal' }} />
                   <Stack.Screen name="add-account" options={{ title: '계좌 등록', presentation: 'modal' }} />
+                  <Stack.Screen name="pick-product" options={{ title: '금리 비교', presentation: 'modal' }} />
                   <Stack.Screen name="edit-account/[id]" options={{ title: '계좌 수정', presentation: 'modal' }} />
                   <Stack.Screen
                     name="onboarding"

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, StyleSheet, View } from 'react-native';
 import Svg, { Circle, Defs, Ellipse, G, LinearGradient, Path, Stop } from 'react-native-svg';
 import { bladeMonth } from '../lib/blades';
+import type { AccountType } from '../types/account';
 
 const AnimatedG = Animated.createAnimatedComponent(G);
 
@@ -13,8 +14,11 @@ const BLADE_LEN = 72;
 const HUB_R = 10;
 const BLADE_BOX = (BLADE_LEN + 4) * 2;
 
-// 날개 색: 민트 → 블루 → 인디고로 한 바퀴 이어지는 iOS 시스템 액센트 그라데이션.
-const SWEEP = ['#00C8B3', '#00C0E8', '#0088FF', '#6155F5'];
+// 날개 색: 적금은 민트 → 블루 → 인디고(한색), 예금은 노랑 → 주황 → 코랄 → 핑크(난색)로 이어지는 iOS 액센트 그라데이션.
+const SWEEPS: Record<AccountType, string[]> = {
+  savings: ['#00C8B3', '#00C0E8', '#0088FF', '#6155F5'],
+  deposit: ['#FFCC00', '#FF8D28', '#FF6B4A', '#FF2D55'],
+};
 /** 아직 채우지 않은 날개 자리 (Activity 링의 빈 트랙처럼). 뒤의 탑이 비치지 않게 불투명하게 쓴다. */
 const EMPTY_FILL = '#E9E9EE';
 
@@ -24,13 +28,15 @@ interface Props {
   /** 채워진 날개 자리 (bladePosition으로 구한 0~blades-1). 날개 하나가 만기월 하나를 뜻한다. */
   filled: number[];
   width: number;
+  /** 적금(한색) / 예금(난색) 풍차 색 */
+  type?: AccountType;
 }
 
 /**
  * 날개 하나가 달 하나를 뜻하는 풍차. 시계처럼 12시 방향이 12월, 1시 방향이 1월이다.
  * 계좌의 만기월 자리에 날개가 생기고, 모든 자리가 채워지면 돌아간다.
  */
-export function Windmill({ blades, filled, width }: Props) {
+export function Windmill({ blades, filled, width, type = 'savings' }: Props) {
   const filledSet = new Set(filled);
   const count = filledSet.size;
   const complete = count >= blades;
@@ -129,7 +135,7 @@ export function Windmill({ blades, filled, width }: Props) {
               return <Path key={i} d={bladePath} fill={EMPTY_FILL} rotation={angle} origin="0, 0" />;
             }
             const blade = (
-              <Path d={bladePath} fill={bladeColor(i, blades)} rotation={angle} origin="0, 0" />
+              <Path d={bladePath} fill={bladeColor(i, blades, 1, type)} rotation={angle} origin="0, 0" />
             );
             // 방금 채워진 날개만 허브에서 자라나게 한다.
             return fresh.has(i) ? (
@@ -170,12 +176,13 @@ function sailPath(width: number, corner: number, fullFrom = 0.45): string {
 }
 
 /** i번째 날개 색. 계단 그래프 막대도 같은 색을 써서 막대와 날개를 이어 준다. */
-export function bladeColor(index: number, blades: number, alpha = 1): string {
-  const pos = ((index % blades) / Math.max(1, blades - 1)) * (SWEEP.length - 1);
-  const i = Math.min(Math.floor(pos), SWEEP.length - 2);
+export function bladeColor(index: number, blades: number, alpha = 1, type: AccountType = 'savings'): string {
+  const sweep = SWEEPS[type];
+  const pos = ((index % blades) / Math.max(1, blades - 1)) * (sweep.length - 1);
+  const i = Math.min(Math.floor(pos), sweep.length - 2);
   const f = pos - i;
-  const a = hexToRgb(SWEEP[i]);
-  const b = hexToRgb(SWEEP[i + 1]);
+  const a = hexToRgb(sweep[i]);
+  const b = hexToRgb(sweep[i + 1]);
   const mix = a.map((v, k) => Math.round(v + (b[k] - v) * f));
   return `rgba(${mix.join(', ')}, ${alpha})`;
 }
