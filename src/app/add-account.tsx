@@ -26,6 +26,14 @@ export default function NewAccountScreen() {
         .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]?.amount;
     return { savings: latest('savings'), deposit: latest('deposit') };
   }, [accounts]);
+  // 금리도 같은 종류로 마지막에 가입한 계좌를 기본값으로 쓴다 (금리를 비워 둔 계좌는 건너뛴다).
+  const defaultRates = useMemo(() => {
+    const latest = (type: 'savings' | 'deposit') =>
+      accounts
+        .filter((a) => a.type === type && a.rate > 0)
+        .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0]?.rate;
+    return { savings: latest('savings'), deposit: latest('deposit') };
+  }, [accounts]);
 
   const prefill = useMemo((): Partial<Account> | undefined => {
     if (!params.prefill) return undefined;
@@ -64,6 +72,7 @@ export default function NewAccountScreen() {
         windmillTerms={{ savings: settings.goals.savings?.blades, deposit: settings.goals.deposit?.blades }}
         submitLabel="저장"
         defaultAmounts={defaultAmounts}
+        defaultRates={defaultRates}
         lockedType={step > 0}
         banner={params.from === 'rates' ? '금리 비교에서 고른 상품 정보가 채워졌어요' : undefined}
         header={

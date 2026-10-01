@@ -18,7 +18,7 @@ export function PickerRow<T extends string | number>({
   placeholder,
 }: {
   title: string;
-  options: { value: T; label: string }[];
+  options: { value: T; label: string; icon?: React.ReactNode }[];
   value: T;
   onChange: (value: T) => void;
   open: boolean;
@@ -31,6 +31,7 @@ export function PickerRow<T extends string | number>({
     <View>
       <Pressable style={({ pressed }) => [styles.row, pressed && styles.pressed]} onPress={onToggle}>
         <Text style={styles.title}>{title}</Text>
+        {current?.icon}
         <Text style={[styles.detail, open && styles.detailOpen, !current && styles.detailPlaceholder]}>
           {current?.label ?? placeholder}
         </Text>
@@ -42,6 +43,7 @@ export function PickerRow<T extends string | number>({
             <Chip
               key={String(o.value)}
               label={o.label}
+              icon={o.icon}
               selected={o.value === value}
               onPress={() => {
                 onChange(o.value);
@@ -105,17 +107,24 @@ function toISO(date: Date): string {
 /** 날짜 행. iOS는 컴팩트 날짜 선택기를 행 오른쪽에 두고, Android는 눌러서 연다. */
 export function DateRow({ title, value, onChange }: { title: string; value: string; onChange: (iso: string) => void }) {
   const [androidOpen, setAndroidOpen] = useState(false);
+  // iOS 컴팩트 선택기는 날짜를 골라도 달력이 떠 있어서, 고르면 선택기를 새로 그려 달력을 닫는다.
+  const [pickerKey, setPickerKey] = useState(0);
   if (Platform.OS === 'ios') {
     return (
       <View style={styles.row}>
         <Text style={styles.title}>{title}</Text>
         <View style={styles.spacer} />
         <DateTimePicker
+          key={pickerKey}
           value={toDate(value)}
           mode="date"
           display="compact"
           locale="ko-KR"
-          onChange={(_e, date) => date && onChange(toISO(date))}
+          onChange={(e, date) => {
+            if (!date) return;
+            onChange(toISO(date));
+            if (e.type === 'set') setPickerKey((k) => k + 1);
+          }}
         />
       </View>
     );

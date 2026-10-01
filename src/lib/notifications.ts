@@ -61,10 +61,11 @@ export async function rescheduleAllNotifications(
   const today = todayKST();
   const androidChannel = Platform.OS === 'android' ? { channelId: CHANNEL_ID } : {};
 
-  // 할 일 목록: 다음 가입 달이 되면 그달 1일 오전 9시에 알린다.
+  // 할 일 목록: 사용자가 고른 날 은행 여는 시간(오전 9시)에 다음 가입을 알린다.
   for (const type of ['savings', 'deposit'] as const) {
     const goal = settings.goals[type];
-    if (!goal || !settings.stepReminder[type]) continue;
+    const remindOn = settings.stepReminder[type];
+    if (!goal || !remindOn || compareISODates(remindOn, today) < 0) continue;
     const next = buildChecklist(goal, type, accounts, today).steps.find((s) => s.status === 'scheduled');
     if (!next) continue;
     const unit = type === 'savings' ? '적금' : '예금';
@@ -75,7 +76,7 @@ export async function rescheduleAllNotifications(
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,
-        date: dateAt9am(next.month),
+        date: dateAt9am(remindOn),
         ...androidChannel,
       },
     });

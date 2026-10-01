@@ -2,7 +2,7 @@ import { SymbolView, type SFSymbol } from 'expo-symbols';
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Checklist, ChecklistStep } from '../lib/checklist';
-import { formatManwon, formatMonth } from '../lib/format';
+import { formatDateShort, formatManwon, formatMonth } from '../lib/format';
 import { colors, radius, spacing } from '../theme';
 import type { AccountType } from '../types/account';
 import { Chevron } from './ui/Grouped';
@@ -16,9 +16,10 @@ interface Props {
   /** 이 단계에 맞는 금리 높은 상품 보기 */
   onFindProducts: (step: ChecklistStep) => void;
   onOpenAccount: (accountId: string) => void;
-  /** 다음 가입 달이 되면 알림을 받을지 */
-  reminderOn: boolean;
-  onToggleReminder: () => void;
+  /** 다음 가입 알림 날짜 (없으면 알림 없음) */
+  reminderDate?: string;
+  /** 알림 날짜를 고르는 창을 연다 */
+  onReminder: (step: ChecklistStep) => void;
 }
 
 const UNIT: Record<AccountType, string> = { savings: '적금', deposit: '예금' };
@@ -31,8 +32,8 @@ export function WindmillChecklist({
   onJoin,
   onFindProducts,
   onOpenAccount,
-  reminderOn,
-  onToggleReminder,
+  reminderDate,
+  onReminder,
 }: Props) {
   const { steps, perAccount, termMonths, doneCount, complete } = checklist;
   const [showDone, setShowDone] = useState(false);
@@ -86,7 +87,7 @@ export function WindmillChecklist({
               <View key={step.index} style={[styles.row, styles.rowNow]}>
                 <StepNumber n={step.index + 1} active />
                 <View style={styles.rowMain}>
-                  <Text style={styles.nowTitle}>
+                  <Text style={styles.nowTitle} lineBreakStrategyIOS="hangul-word">
                     {step.index + 1}번째 {unit}을 가입하세요
                   </Text>
                   <View style={styles.actions}>
@@ -106,23 +107,26 @@ export function WindmillChecklist({
             return (
               <View key={step.index} style={[styles.row, styles.rowCentered]}>
                 <StepNumber n={step.index + 1} />
-                <Text style={[styles.scheduledTitle, styles.rowMain]}>
+                <Text style={[styles.scheduledTitle, styles.rowMain]} lineBreakStrategyIOS="hangul-word">
                   {month}에 {step.index + 1}번째 {unit}을 가입하세요
                 </Text>
+                {/* 종 옆에 알림 날짜(없으면 '알림')를 붙여 무엇을 하는 버튼인지, 언제 오는지 보이게 한다 */}
                 <Pressable
-                  style={[styles.bell, reminderOn && styles.bellOn]}
-                  onPress={onToggleReminder}
+                  style={[styles.bell, reminderDate && styles.bellOn]}
+                  onPress={() => onReminder(step)}
                   hitSlop={8}
-                  accessibilityRole="switch"
-                  accessibilityLabel={`${month} 가입 알림`}
-                  accessibilityState={{ checked: reminderOn }}
+                  accessibilityRole="button"
+                  accessibilityLabel={reminderDate ? `${formatDateShort(reminderDate)}에 가입 알림, 바꾸기` : `${month} 가입 알림 받기`}
                 >
                   <SymbolView
-                    name={reminderOn ? 'bell.fill' : 'bell'}
-                    size={17}
-                    tintColor={reminderOn ? '#FFFFFF' : colors.primary}
+                    name={reminderDate ? 'bell.fill' : 'bell'}
+                    size={15}
+                    tintColor={reminderDate ? '#FFFFFF' : colors.primary}
                     fallback={<Text style={styles.bellFallback}>🔔</Text>}
                   />
+                  <Text style={[styles.bellText, reminderDate && styles.bellTextOn]}>
+                    {reminderDate ? formatDateShort(reminderDate) : '알림'}
+                  </Text>
                 </Pressable>
               </View>
             );
@@ -207,12 +211,21 @@ const styles = StyleSheet.create({
     marginBottom: 2,
   },
   bell: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 4,
+    height: 32,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.full,
     backgroundColor: colors.primarySoft,
+  },
+  bellText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.primary,
+  },
+  bellTextOn: {
+    color: '#FFFFFF',
   },
   bellOn: {
     backgroundColor: colors.primary,

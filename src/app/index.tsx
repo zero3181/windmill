@@ -1,6 +1,6 @@
 import { Stack, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef } from 'react';
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AccountListItem } from '../components/AccountListItem';
 import { EmptyState } from '../components/EmptyState';
 import { PrimaryButton, Segmented } from '../components/ui/Controls';
@@ -12,7 +12,6 @@ import { fitsWindmill } from '../lib/blades';
 import { todayKST } from '../lib/calc';
 import { buildChecklist, type ChecklistStep } from '../lib/checklist';
 import { selectWindmill, withFinancials } from '../lib/homeSelectors';
-import { ensureNotificationSetup } from '../lib/notifications';
 import { useAccounts } from '../store/AccountsContext';
 import { useWindmillType } from '../store/WindmillTypeContext';
 import { colors, spacing } from '../theme';
@@ -67,15 +66,6 @@ export default function HomeScreen() {
   function handleJoin(step: ChecklistStep) {
     const prefill = { type, amount: checklist?.perAccount, termMonths: checklist?.termMonths };
     router.push({ pathname: '/add-account', params: { prefill: JSON.stringify(prefill), step: String(step.index + 1) } });
-  }
-
-  async function handleToggleReminder() {
-    const next = !settings.stepReminder[type];
-    if (next && !(await ensureNotificationSetup(true).catch(() => false))) {
-      Alert.alert('알림이 꺼져 있어요', '설정 앱의 풍차돌리기 > 알림에서 허용해 주세요.');
-      return;
-    }
-    await updateSettings({ stepReminder: { ...settings.stepReminder, [type]: next } });
   }
 
   function handleFindProducts(step: ChecklistStep) {
@@ -163,8 +153,13 @@ export default function HomeScreen() {
                 onJoin={handleJoin}
                 onFindProducts={handleFindProducts}
                 onOpenAccount={(id) => router.push(`/account/${id}`)}
-                reminderOn={settings.stepReminder[type]}
-                onToggleReminder={handleToggleReminder}
+                reminderDate={settings.stepReminder[type]}
+                onReminder={(step) =>
+                  router.push({
+                    pathname: '/step-reminder',
+                    params: { type, month: step.month, step: String(step.index + 1) },
+                  })
+                }
               />
             ) : (
               <Card style={styles.goalPrompt}>

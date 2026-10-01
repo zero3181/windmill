@@ -147,7 +147,13 @@ export default function AccountDetailScreen() {
         {isActive && (
           <GroupedSection title="해지">
             <ListRow title="중도 해지" tint="primary" onPress={busy ? undefined : handleEarlyClose} />
-            <ListRow title="만기 해지" tint="primary" onPress={busy ? undefined : handleMaturedClose} />
+            {/* 만기 해지는 만기일이 된 뒤에만 누를 수 있다 */}
+            <ListRow
+              title="만기 해지"
+              tint="primary"
+              disabled={financials.daysToMaturity > 0}
+              onPress={busy ? undefined : handleMaturedClose}
+            />
           </GroupedSection>
         )}
 

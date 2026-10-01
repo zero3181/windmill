@@ -22,8 +22,8 @@ export interface AppSettings {
   windmillSize: Record<AccountType, WindmillSize>;
   /** 적금 풍차 / 예금 풍차 각각의 목표 (아직 만들지 않았으면 없음) */
   goals: Partial<Record<AccountType, WindmillGoal>>;
-  /** 할 일 목록의 다음 가입 달이 되면 알려줄지 (적금 풍차 / 예금 풍차 각각) */
-  stepReminder: Record<AccountType, boolean>;
+  /** 할 일의 다음 가입 알림 날짜 (YYYY-MM-DD, 그날 오전 9시). 적금 풍차 / 예금 풍차 각각, 없으면 알림 없음 */
+  stepReminder: Partial<Record<AccountType, string>>;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -34,7 +34,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   onboardingDone: false,
   windmillSize: { savings: 12, deposit: 12 },
   goals: {},
-  stepReminder: { savings: false, deposit: false },
+  stepReminder: {},
 };
 
 export function goalSettingKey(type: AccountType): string {
@@ -50,6 +50,10 @@ function parseGoal(raw: string | undefined): WindmillGoal | undefined {
     // 잘못 저장된 값은 목표가 없는 것으로 본다.
   }
   return undefined;
+}
+
+function parseDate(raw: string | undefined): string | undefined {
+  return raw && /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : undefined;
 }
 
 export function serializeGoal(goal: WindmillGoal | undefined): string {
@@ -76,8 +80,8 @@ export function parseSettings(raw: Record<string, string>): AppSettings {
       deposit: parseGoal(raw[goalSettingKey('deposit')]),
     },
     stepReminder: {
-      savings: raw['stepReminder.savings'] === '1',
-      deposit: raw['stepReminder.deposit'] === '1',
+      savings: parseDate(raw['stepReminder.savings']),
+      deposit: parseDate(raw['stepReminder.deposit']),
     },
   };
 }

@@ -6,6 +6,7 @@ import { computeMaturityDate, parseISODate, todayKST } from '../lib/calc';
 import { onProductPick, type ProductPick } from '../lib/productPick';
 import { colors, radius, spacing } from '../theme';
 import { type Account, type AccountType, type NewAccountInput, type TaxType } from '../types/account';
+import { BankBadge } from './BankBadge';
 import { Segmented } from './ui/Controls';
 import { DateRow, InputRow, PickerRow } from './ui/FormRows';
 import { Chevron, GroupedSection, ListRow } from './ui/Grouped';
@@ -22,6 +23,8 @@ interface Props {
   banner?: string;
   /** 종류별 기본 금액: 이미 가입한 같은 종류 계좌의 금액 (매번 입력하지 않도록) */
   defaultAmounts?: Partial<Record<AccountType, number>>;
+  /** 종류별 기본 금리 (%): 이미 가입한 같은 종류 계좌의 금리, 없으면 DEFAULT_RATE */
+  defaultRates?: Partial<Record<AccountType, number>>;
   /** 풍차 체크리스트에서 들어오면 종류가 정해져 있어 고르지 않는다. */
   lockedType?: boolean;
   /** 종류별 풍차 날개 수 = 풍차에 들어가는 계좌의 가입 기간 (풍차를 만든 종류만) */
@@ -36,6 +39,8 @@ interface Props {
 const TAX_SHORT: Record<TaxType, string> = { general: '일반과세', preferential: '세금우대', exempt: '비과세' };
 const UNIT: Record<AccountType, string> = { savings: '적금', deposit: '예금' };
 const CUSTOM_BANK = '__custom__';
+/** 같은 종류로 가입한 계좌가 없을 때 채워 둘 금리 (%) */
+const DEFAULT_RATE: Record<AccountType, number> = { savings: 3.5, deposit: 3.0 };
 
 function isListedBank(name: string, knownBanks: string[]): boolean {
   return (BANKS as readonly string[]).includes(name) || knownBanks.includes(name);
@@ -53,6 +58,7 @@ export function AccountForm({
   submitLabel,
   banner,
   defaultAmounts = {},
+  defaultRates = {},
   lockedType = false,
   windmillTerms = {},
   header,
@@ -67,7 +73,9 @@ export function AccountForm({
   const [amountText, setAmountText] = useState(formatAmount(initial?.amount ?? defaultAmounts[initial?.type ?? 'savings']));
   /** 금액을 직접 입력했거나 기존 값이 있으면 종류를 바꿔도 기본 금액으로 덮어쓰지 않는다 */
   const [amountTouched, setAmountTouched] = useState(Boolean(initial?.amount));
-  const [rateText, setRateText] = useState(initial?.rate ? String(initial.rate) : '');
+  const rateFor = (t: AccountType) => String(defaultRates[t] ?? DEFAULT_RATE[t]);
+  const [rateText, setRateText] = useState(initial?.rate ? String(initial.rate) : rateFor(initial?.type ?? 'savings'));
+  const [rateTouched, setRateTouched] = useState(Boolean(initial?.rate));
   const [taxType, setTaxType] = useState<TaxType>(initial?.taxType ?? defaultTaxType);
   const [startDate, setStartDate] = useState<string>(initial?.startDate ?? todayKST());
   // 풍차가 있으면 그 풍차의 기간(날개 수)을 기본으로 한다.
@@ -103,7 +111,11 @@ export function AccountForm({
 
   const bankOptions = useMemo(
     () => [
-      ...[...BANKS, ...knownBanks.filter((b) => !(BANKS as readonly string[]).includes(b))].map((b) => ({ value: b, label: b })),
+      ...[...BANKS, ...knownBanks.filter((b) => !(BANKS as readonly string[]).includes(b))].map((b) => ({
+        value: b,
+        label: b,
+        icon: <BankBadge bank={b} />,
+      })),
       { value: CUSTOM_BANK, label: '직접 입력' },
     ],
     [knownBanks]
@@ -117,6 +129,7 @@ export function AccountForm({
         setCustomBank(!isListedBank(pick.bank, knownBanks));
         setName(pick.name);
         setRateText(String(pick.rate));
+        setRateTouched(true);
         if (!lockedType && [6, 12].includes(pick.termMonths)) {
           setTermMonths(pick.termMonths);
           setMaturityOverride(null);
@@ -143,6 +156,7 @@ export function AccountForm({
   function handleTypeChange(next: AccountType) {
     setType(next);
     if (!amountTouched) setAmountText(formatAmount(defaultAmounts[next]));
+    if (!rateTouched) setRateText(rateFor(next));
     if (!termTouched && windmillTerms[next]) handleTermChange(windmillTerms[next], false);
   }
 
@@ -152,8 +166,8 @@ export function AccountForm({
   function validate(): string | null {
     const amount = Number(amountText.replace(/,/g, ''));
     if (!amount || amount <= 0) return '금액을 입력해 주세요';
-    const rate = Number(rateText || 0);
-    if (isNaN(rate) || rate < 0) return '금리를 숫자로 입력해 주세요';
+    const rate = Number(rateText);
+    if (!rateText || isNaN(rate) || rate <= 0) return '금리를 입력해 주세요';
     if (!termMonths || termMonths <= 0) return '가입 기간을 골라 주세요';
     if (type === 'savings') {
       const payDay = Number(payDayText);
@@ -244,6 +258,17 @@ export function AccountForm({
             placeholder="0"
             suffix="원"
           />
+          <InputRow
+            title="금리 (연)"
+            value={rateText}
+            onChangeText={(t) => {
+              setRateText(t);
+              setRateTouched(true);
+            }}
+            keyboardType="decimal-pad"
+            placeholder={rateFor(type)}
+            suffix="%"
+          />
           <DateRow title="가입일" value={startDate} onChange={handleStartDateChange} />
           {lockedType ? (
             // 할 일에서 가입할 때는 풍차 주기에 맞는 기간만 가능하다.
@@ -282,7 +307,6 @@ export function AccountForm({
           <>
             <GroupedSection>
               <InputRow title="별칭" value={name} onChangeText={setName} placeholder={defaultName(type, startDate)} />
-              <InputRow title="금리 (연)" value={rateText} onChangeText={setRateText} keyboardType="decimal-pad" placeholder="3.50" suffix="%" />
               <View style={styles.taxRow}>
                 <Text style={styles.taxLabel}>과세 구분</Text>
                 <View style={styles.taxControl}>

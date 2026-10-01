@@ -51,9 +51,21 @@ export function PrimaryButton({
   );
 }
 
-export function Chip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+export function Chip({
+  label,
+  selected,
+  onPress,
+  icon,
+}: {
+  label: string;
+  selected: boolean;
+  onPress: () => void;
+  /** 글자 앞에 붙는 작은 그림 (예: 은행 표시) */
+  icon?: React.ReactNode;
+}) {
   return (
-    <Pressable style={[styles.chip, selected && styles.chipSelected]} onPress={onPress}>
+    <Pressable style={[styles.chip, icon ? styles.chipWithIcon : null, selected && styles.chipSelected]} onPress={onPress}>
+      {icon}
       <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text>
     </Pressable>
   );
@@ -91,6 +103,12 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     borderRadius: radius.full,
     backgroundColor: colors.barEmpty,
+  },
+  chipWithIcon: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingLeft: 6,
   },
   chipSelected: {
     backgroundColor: colors.primarySoft,

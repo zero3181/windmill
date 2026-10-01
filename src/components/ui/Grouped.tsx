@@ -49,6 +49,7 @@ export function ListRow({
   tint = 'default',
   right,
   onPress,
+  disabled = false,
 }: {
   title: string;
   subtitle?: string;
@@ -58,12 +59,20 @@ export function ListRow({
   tint?: RowTint;
   right?: React.ReactNode;
   onPress?: () => void;
+  /** 흐리게 보이고 누를 수 없다 */
+  disabled?: boolean;
 }) {
   return (
     <Pressable
-      style={({ pressed }) => [styles.row, subtitle ? styles.rowTall : null, pressed && onPress ? styles.rowPressed : null]}
+      style={({ pressed }) => [
+        styles.row,
+        subtitle ? styles.rowTall : null,
+        pressed && onPress ? styles.rowPressed : null,
+        disabled && styles.rowDisabled,
+      ]}
       onPress={onPress}
-      disabled={!onPress}
+      disabled={disabled || !onPress}
+      accessibilityState={{ disabled }}
     >
       <View style={styles.rowMain}>
         <Text
@@ -148,6 +157,9 @@ const styles = StyleSheet.create({
   rowTall: {
     minHeight: 64,
     paddingVertical: 10,
+  },
+  rowDisabled: {
+    opacity: 0.35,
   },
   rowPressed: {
     backgroundColor: colors.barEmpty,
