@@ -55,7 +55,7 @@ export default function HomeScreen() {
         // 가입을 기록했을 때만 맨 위로 올려 날개가 자라는 모습을 보여 주고 진동을 낸다.
         if (!feedback.undo) {
           scrollRef.current?.scrollTo({ y: 0, animated: true });
-          successHaptic();
+          successHaptic(feedback.celebrate);
         }
       }),
     []

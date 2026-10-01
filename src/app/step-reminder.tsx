@@ -2,7 +2,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { PrimaryButton } from '../components/ui/Controls';
+import { LinkButton, PrimaryButton } from '../components/ui/Controls';
 import { addDays, addMonthsClamped, compareISODates, parseISODate, todayKST } from '../lib/calc';
 import { formatDateShort } from '../lib/format';
 import { askNotificationPermission } from '../lib/notifications';
@@ -93,7 +93,11 @@ export default function StepReminderScreen() {
         <Text style={styles.when}>{formatDateShort(date)} 9시</Text>
         <View style={styles.actions}>
           <PrimaryButton label="알림 받기" onPress={handleSave} />
-          {saved ? <PrimaryButton label="알림 끄기" variant="plain" onPress={handleOff} /> : null}
+          {saved ? (
+            <View style={styles.offRow}>
+              <LinkButton label="알림 끄기" onPress={handleOff} />
+            </View>
+          ) : null}
         </View>
       </ScrollView>
     </>
@@ -116,6 +120,9 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.textMuted,
     textAlign: 'center',
+  },
+  offRow: {
+    alignItems: 'center',
   },
   actions: {
     gap: spacing.sm,

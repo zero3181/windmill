@@ -4,9 +4,9 @@ import { StyleSheet, Text } from 'react-native';
 import { AccountForm } from '../components/AccountForm';
 import { Card, GroupedSection, ListRow } from '../components/ui/Grouped';
 import { formatManwon } from '../lib/format';
-import { fitsWindmill } from '../lib/blades';
+import { bladePosition, fitsWindmill } from '../lib/blades';
 import { computeMaturityDate } from '../lib/calc';
-import { notifySaved } from '../lib/feedback';
+import { notifyCelebrate, notifySaved } from '../lib/feedback';
 import { askNotificationPermission } from '../lib/notifications';
 import { useAccounts } from '../store/AccountsContext';
 import { colors, spacing } from '../theme';
@@ -57,11 +57,23 @@ export default function NewAccountScreen() {
 
   async function handleSubmit(input: NewAccountInput) {
     const isFirstAccount = accounts.length === 0;
-    await addAccount(input);
-    // 풍차에 들어가는 계좌면 채워진 달 날개를, 아니면 등록했다는 것만 알린다.
     const goal = settings.goals[input.type];
     const maturity = input.maturityDate || computeMaturityDate(input.startDate, input.termMonths);
-    notifySaved(goal && fitsWindmill(input, goal.blades) ? `${Number(maturity.slice(5, 7))}월 날개를 채웠어요` : '계좌를 등록했어요');
+    // 이 계좌가 마지막 빈 날개를 채우면 풍차가 처음 돌기 시작하는 순간이다.
+    let completes = false;
+    if (goal && fitsWindmill(input, goal.blades)) {
+      const filled = new Set(
+        accounts
+          .filter((a) => a.status === 'active' && a.type === input.type && fitsWindmill(a, goal.blades))
+          .map((a) => bladePosition(a.maturityDate, goal.blades))
+      );
+      completes = filled.size === goal.blades - 1 && !filled.has(bladePosition(maturity, goal.blades));
+    }
+    await addAccount(input);
+    // 풍차에 들어가는 계좌면 채워진 달 날개를, 아니면 등록했다는 것만 알린다.
+    if (completes) notifyCelebrate('풍차 완성! 이제 매달 만기가 돌아와요');
+    else
+      notifySaved(goal && fitsWindmill(input, goal.blades) ? `${Number(maturity.slice(5, 7))}월 날개를 채웠어요` : '계좌를 등록했어요');
     router.back();
     // 첫 계좌를 등록하면, 만기 알림에 쓸 권한을 이유와 함께 묻는다.
     if (isFirstAccount) {

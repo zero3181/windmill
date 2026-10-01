@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { colors, spacing } from '../theme';
-import { PrimaryButton } from './ui/Controls';
+import { LinkButton, PrimaryButton } from './ui/Controls';
 import { Card } from './ui/Grouped';
 
 /** 아직 풍차도 계좌도 없을 때: 풍차 만들기로 시작한다. */
@@ -14,7 +14,9 @@ export function EmptyState() {
       <Text style={styles.desc}>날개 수와 금액만 정하면 할 일을 알려드려요.</Text>
       <View style={styles.actions}>
         <PrimaryButton label="풍차 만들기" onPress={() => router.push('/create-windmill')} />
-        <PrimaryButton label="이미 가입한 계좌가 있어요" variant="plain" onPress={() => router.push('/add-account')} />
+        <View style={styles.secondary}>
+          <LinkButton label="이미 가입한 계좌가 있어요" onPress={() => router.push('/add-account')} />
+        </View>
       </View>
     </Card>
   );
@@ -36,6 +38,9 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
     lineHeight: 21,
     textAlign: 'center',
+  },
+  secondary: {
+    alignItems: 'center',
   },
   actions: {
     alignSelf: 'stretch',

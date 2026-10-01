@@ -51,6 +51,30 @@ export function PrimaryButton({
   );
 }
 
+/**
+ * 버튼 규칙: 화면의 큰 주 행동은 PrimaryButton, 줄 안의 주 행동은 PillButton,
+ * 보조 행동은 LinkButton(파란 글자). 같은 무게의 행동은 같은 모양으로 쓴다.
+ */
+export function PillButton({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <Pressable
+      style={({ pressed }) => [styles.pill, pressed && styles.buttonPressed]}
+      onPress={onPress}
+      accessibilityRole="button"
+    >
+      <Text style={styles.pillText}>{label}</Text>
+    </Pressable>
+  );
+}
+
+export function LinkButton({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <Pressable style={styles.link} onPress={onPress} hitSlop={8} accessibilityRole="button">
+      {({ pressed }) => <Text style={[styles.linkText, pressed && styles.linkPressed]}>{label}</Text>}
+    </Pressable>
+  );
+}
+
 export function Chip({
   label,
   selected,
@@ -97,6 +121,29 @@ const styles = StyleSheet.create({
   },
   buttonTextPlain: {
     color: colors.primary,
+  },
+  pill: {
+    minHeight: 36,
+    justifyContent: 'center',
+    paddingHorizontal: spacing.lg,
+    borderRadius: radius.full,
+    backgroundColor: colors.primary,
+  },
+  pillText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#FFFFFF',
+  },
+  link: {
+    minHeight: 36,
+    justifyContent: 'center',
+  },
+  linkText: {
+    fontSize: 15,
+    color: colors.primary,
+  },
+  linkPressed: {
+    opacity: 0.5,
   },
   chip: {
     paddingHorizontal: spacing.md,

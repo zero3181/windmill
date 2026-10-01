@@ -5,6 +5,7 @@ import type { Checklist, ChecklistStep } from '../lib/checklist';
 import { formatDateShort, formatManwon, formatMonth } from '../lib/format';
 import { colors, radius, spacing } from '../theme';
 import type { Account, AccountType } from '../types/account';
+import { LinkButton, PillButton } from './ui/Controls';
 import { Chevron } from './ui/Grouped';
 
 interface Props {
@@ -82,12 +83,8 @@ export function WindmillChecklist({
                 {Number(account.maturityDate.slice(5, 7))}월 {unit}이 만기됐어요
               </Text>
               <View style={styles.actions}>
-                <Pressable style={styles.joinButton} onPress={() => onRenew(account)}>
-                  <Text style={styles.joinText}>만기 해지하고 다시 가입</Text>
-                </Pressable>
-                <Pressable style={styles.linkButton} onPress={() => onCloseMatured(account)} hitSlop={6}>
-                  <Text style={styles.linkText}>해지만</Text>
-                </Pressable>
+                <PillButton label="만기 해지하고 다시 가입" onPress={() => onRenew(account)} />
+                <LinkButton label="해지만" onPress={() => onCloseMatured(account)} />
               </View>
             </View>
           </View>
@@ -125,12 +122,8 @@ export function WindmillChecklist({
                     {step.index + 1}번째 {unit}을 가입하세요
                   </Text>
                   <View style={styles.actions}>
-                    <Pressable style={styles.joinButton} onPress={() => onJoin(step)}>
-                      <Text style={styles.joinText}>가입했어요</Text>
-                    </Pressable>
-                    <Pressable style={styles.linkButton} onPress={() => onFindProducts(step)} hitSlop={6}>
-                      <Text style={styles.linkText}>금리 높은 상품 보기</Text>
-                    </Pressable>
+                    <PillButton label="가입했어요" onPress={() => onJoin(step)} />
+                    <LinkButton label="금리 높은 상품 보기" onPress={() => onFindProducts(step)} />
                   </View>
                 </View>
               </View>
@@ -349,23 +342,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.lg,
     marginTop: spacing.sm,
-  },
-  joinButton: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.full,
-    paddingHorizontal: spacing.lg,
-    paddingVertical: spacing.sm,
-  },
-  joinText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: '#FFFFFF',
-  },
-  linkButton: {
-    paddingVertical: spacing.sm,
-  },
-  linkText: {
-    fontSize: 15,
-    color: colors.primary,
   },
 });

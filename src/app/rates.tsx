@@ -2,7 +2,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { BankBadge } from '../components/BankBadge';
-import { Chip, PrimaryButton, Segmented } from '../components/ui/Controls';
+import { Chip, LinkButton, PrimaryButton, Segmented } from '../components/ui/Controls';
 import { Chevron, GroupedSection } from '../components/ui/Grouped';
 import { loadProducts, rankProducts, type FinProduct, type ProductsResult } from '../lib/finlife';
 import { formatWon } from '../lib/format';
@@ -148,7 +148,7 @@ export default function RatesScreen({ pick = false }: { pick?: boolean }) {
       {error ? (
         <View style={styles.center}>
           <Text style={styles.errorText}>{error}</Text>
-          <PrimaryButton label="다시 시도" variant="plain" onPress={handleRefresh} />
+          <LinkButton label="다시 시도" onPress={handleRefresh} />
         </View>
       ) : !products ? (
         <View style={styles.center}>
