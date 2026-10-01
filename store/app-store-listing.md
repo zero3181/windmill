@@ -52,9 +52,9 @@ App Store Connect의 각 칸에 그대로 붙여 넣을 수 있게 정리했습�
 
 | 항목 | 값 |
 | --- | --- |
-| 지원 URL (필수) | _공개 페이지 주소 필요_ |
+| 지원 URL (필수) | https://zero3181.github.io/windmill/ |
 | 마케팅 URL (선택) | _없으면 비워 둠_ |
-| 개인정보 처리방침 URL (필수) | _공개 페이지 주소 필요 — 본문은 privacy-policy.md_ |
+| 개인정보 처리방침 URL (필수) | https://zero3181.github.io/windmill/privacy.html |
 
 ## 앱 개인정보 (App Privacy)
 
@@ -86,4 +86,13 @@ App Store Connect의 각 칸에 그대로 붙여 넣을 수 있게 정리했습�
 4. `4_create.png` — 날개 수와 금액만 정하면 시작
 5. `5_join.png` — 어떤 조건으로 가입할지 바로 알려드려요
 
-6.9인치 스크린샷만 올리면 작은 화면용은 App Store가 자동으로 줄여서 씁니다. iPad를 지원하도록 설정돼 있어(`supportsTablet: true`) 13인치 iPad 스크린샷도 필요합니다. iPad를 빼려면 `app.json`에서 `supportsTablet`을 `false`로 바꾸면 됩니다.
+6.9인치 스크린샷만 올리면 작은 화면용은 App Store가 자동으로 줄여서 씁니다.
+
+### iPad 13인치 (2064 × 2752)
+
+`store/screenshots/ipad/`의 같은 이름 5장을 같은 순서로 올리면 됩니다. 원본은 `store/screenshots/ipad/raw/`에 있습니다.
+
+## 웹페이지 (GitHub Pages)
+
+- 저장소 `zero3181/windmill`의 `gh-pages` 브랜치에 있습니다 (앱 코드와 분리).
+- 도메인을 연결하면 위 두 URL을 새 도메인 주소로 바꿔 주세요.
