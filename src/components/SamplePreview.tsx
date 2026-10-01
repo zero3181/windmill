@@ -7,8 +7,8 @@ import { radius, spacing } from '../theme';
 import { WindmillCard } from './WindmillCard';
 import { WindmillHero } from './WindmillHero';
 
-/** 도장 잉크색: 약간 바랜 빨강 */
-const STAMP_RED = 'rgba(224, 49, 49, 0.82)';
+/** 도장 잉크색: 약간 바랜 검정 */
+const STAMP_INK = 'rgba(0, 0, 0, 0.78)';
 
 /**
  * 계좌가 하나도 없을 때 홈 아래에 보여 주는 미리보기: 다 채워져 돌아가는 풍차와 그래프.
@@ -25,13 +25,17 @@ export function SamplePreview() {
     <View style={styles.wrap} pointerEvents="none" accessibilityLabel="샘플 데이터 미리보기">
       <View style={styles.preview}>
         <WindmillHero blades={12} filled={windmill.filledBlades} type="savings" />
-        <WindmillCard windmill={windmill} type="savings" size={12} sample emptyLabel="" />
       </View>
-      {/* 미리보기 위에 비스듬히 찍힌 도장: 풍차와 그래프에 걸쳐 실제 데이터가 아님을 알린다 */}
-      <View style={styles.stampLayer}>
-        <View style={styles.stamp}>
-          <View style={styles.stampInner}>
-            <Text style={styles.stampText}>샘플 데이터</Text>
+      {/* 그래프 카드 한가운데에 비스듬히 찍힌 도장: 풍차는 가리지 않고 실제 데이터가 아님을 알린다 */}
+      <View>
+        <View style={styles.preview}>
+          <WindmillCard windmill={windmill} type="savings" size={12} sample emptyLabel="" />
+        </View>
+        <View style={styles.stampLayer}>
+          <View style={styles.stamp}>
+            <View style={styles.stampInner}>
+              <Text style={styles.stampText}>SAMPLE</Text>
+            </View>
           </View>
         </View>
       </View>
@@ -41,31 +45,31 @@ export function SamplePreview() {
 
 const styles = StyleSheet.create({
   wrap: {
-    gap: spacing.md,
+    gap: spacing.xl - 4,
   },
   preview: {
-    gap: spacing.xl - 4,
     opacity: 0.6,
   },
-  // 풍차 아래쪽과 그래프 카드 위쪽에 걸치도록, 풍차 높이쯤에 찍는다.
   stampLayer: {
     position: 'absolute',
-    top: 170,
-    left: 0,
+    top: 0,
     right: 0,
+    bottom: 0,
+    left: 0,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   stamp: {
     transform: [{ rotate: '-14deg' }],
     borderWidth: 4,
-    borderColor: STAMP_RED,
+    borderColor: STAMP_INK,
     borderRadius: radius.md,
     padding: 4,
     backgroundColor: 'rgba(255, 255, 255, 0.55)',
   },
   stampInner: {
     borderWidth: 1.5,
-    borderColor: STAMP_RED,
+    borderColor: STAMP_INK,
     borderRadius: radius.sm,
     paddingHorizontal: spacing.xl,
     paddingVertical: spacing.sm,
@@ -74,6 +78,6 @@ const styles = StyleSheet.create({
     fontSize: 34,
     fontWeight: '900',
     letterSpacing: 4,
-    color: STAMP_RED,
+    color: STAMP_INK,
   },
 });
