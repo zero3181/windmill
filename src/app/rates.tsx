@@ -18,9 +18,11 @@ const LIST_LIMIT = 30;
 export default function RatesScreen({ pick = false }: { pick?: boolean }) {
   const router = useRouter();
   /** step·amount: 풍차 체크리스트에서 들어왔을 때 그 단계와 계좌당 금액 (상품을 고르면 그대로 이어서 등록) */
-  const params = useLocalSearchParams<{ term?: string; count?: string; step?: string; amount?: string }>();
+  const params = useLocalSearchParams<{ term?: string; count?: string; step?: string; amount?: string; type?: AccountType }>();
   const { accounts } = useAccounts();
-  const { type, setType } = useWindmillType();
+  // 홈과 공유하는 값을 바꾸면 홈이 다시 되돌려 버려서, 이 화면 안에서만 쓰는 값으로 둔다.
+  const { type: homeType } = useWindmillType();
+  const [type, setType] = useState<AccountType>(params.type === 'deposit' || params.type === 'savings' ? params.type : homeType);
 
   const [termMonths, setTermMonths] = useState(Number(params.term) || 12);
   const [paramTerm, setParamTerm] = useState(params.term);
@@ -32,6 +34,7 @@ export default function RatesScreen({ pick = false }: { pick?: boolean }) {
   const [excludeMine, setExcludeMine] = useState(true);
   const [openOnly, setOpenOnly] = useState(true);
   const [onlineOnly, setOnlineOnly] = useState(true);
+  const [firstTierOnly, setFirstTierOnly] = useState(false);
   const [expanded, setExpanded] = useState<string | null>(null);
   const planCount = Number(params.count) || 0;
 
@@ -78,10 +81,11 @@ export default function RatesScreen({ pick = false }: { pick?: boolean }) {
             termMonths,
             excludeCompanies: excludeMine ? myCompanies : [],
             openOnly,
+            firstTierOnly,
             onlineOnly,
           }).slice(0, LIST_LIMIT)
         : [],
-    [products, termMonths, excludeMine, myCompanies, openOnly, onlineOnly]
+    [products, termMonths, excludeMine, myCompanies, openOnly, onlineOnly, firstTierOnly]
   );
 
   const disclosureMonth = products?.[0]?.disclosureMonth;
@@ -138,6 +142,11 @@ export default function RatesScreen({ pick = false }: { pick?: boolean }) {
         <View style={styles.chips}>
           <Chip label={`${openOnly ? '✓ ' : ''}가입 조건 없음`} selected={openOnly} onPress={() => setOpenOnly((v) => !v)} />
           <Chip label={`${onlineOnly ? '✓ ' : ''}비대면 전용`} selected={onlineOnly} onPress={() => setOnlineOnly((v) => !v)} />
+          <Chip
+            label={`${firstTierOnly ? '✓ ' : ''}1금융권만`}
+            selected={firstTierOnly}
+            onPress={() => setFirstTierOnly((v) => !v)}
+          />
           {myCompanies.length > 0 && (
             <Chip label={`${excludeMine ? '✓ ' : ''}가입한 곳 제외`} selected={excludeMine} onPress={() => setExcludeMine((v) => !v)} />
           )}
@@ -200,7 +209,9 @@ function ProductRow({
   return (
     <View>
       <Pressable style={({ pressed }) => [styles.row, pressed && styles.rowPressed]} onPress={onToggle}>
-        <Text style={styles.rank}>{rank}</Text>
+        <Text style={styles.rank} numberOfLines={1}>
+          {rank}
+        </Text>
         <View style={styles.rowMain}>
           <Text style={styles.name} numberOfLines={open ? undefined : 1}>
             {p.name}
@@ -287,8 +298,10 @@ const styles = StyleSheet.create({
   rowPressed: {
     backgroundColor: colors.barEmpty,
   },
+  // 두 자리 순위도 한 줄에 들어가게 폭을 넉넉히, 숫자 폭은 고정폭으로 맞춘다.
   rank: {
-    width: 20,
+    minWidth: 26,
+    fontVariant: ['tabular-nums'],
     fontSize: 15,
     fontWeight: '600',
     color: colors.textFaint,

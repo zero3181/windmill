@@ -40,7 +40,9 @@ function intervalLabel(months: number): string {
 
 export default function PlanScreen() {
   const { settings } = useAccounts();
-  const { type, setType } = useWindmillType();
+  // 홈과 공유하는 값을 바꾸면 홈이 다시 되돌려 버려서, 이 화면 안에서만 쓰는 값으로 둔다.
+  const { type: homeType } = useWindmillType();
+  const [type, setType] = useState<AccountType>(homeType);
   const [termMonths, setTermMonths] = useState(12);
   const [intervalMonths, setIntervalMonths] = useState(1);
   const [amount, setAmount] = useState(1_200_000);

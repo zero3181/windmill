@@ -121,6 +121,8 @@ export interface RankOptions {
   openOnly?: boolean;
   /** 비대면 전용 상품만 */
   onlineOnly?: boolean;
+  /** 1금융권(은행)만: 저축은행(2금융권)을 뺀다 */
+  firstTierOnly?: boolean;
 }
 
 /** 조건에 맞는 상품을 금융회사당 하나(기본 금리가 가장 높은 것)씩 골라 금리순으로. */
@@ -132,6 +134,7 @@ export function rankProducts(products: FinProduct[], options: RankOptions): FinP
     if (exclude.has(p.company)) continue;
     if (options.openOnly && !isOpenToAnyone(p)) continue;
     if (options.onlineOnly && !isOnlineOnly(p)) continue;
+    if (options.firstTierOnly && p.group !== 'bank') continue;
     const current = bestByCompany.get(p.company);
     if (!current || p.rate > current.rate || (p.rate === current.rate && p.maxRate > current.maxRate)) {
       bestByCompany.set(p.company, p);

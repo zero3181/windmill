@@ -6,14 +6,12 @@ import { Card, GroupedSection, ListRow } from '../components/ui/Grouped';
 import { formatManwon } from '../lib/format';
 import { ensureNotificationSetup } from '../lib/notifications';
 import { useAccounts } from '../store/AccountsContext';
-import { useWindmillType } from '../store/WindmillTypeContext';
 import { colors, spacing } from '../theme';
 import type { Account, NewAccountInput } from '../types/account';
 
 export default function NewAccountScreen() {
   const router = useRouter();
   const { accounts, addAccount, settings } = useAccounts();
-  const { setType } = useWindmillType();
   /** step: 풍차 체크리스트에서 들어온 단계 번호 (1부터) */
   const params = useLocalSearchParams<{ prefill?: string; from?: string; step?: string }>();
 
@@ -50,9 +48,8 @@ export default function NewAccountScreen() {
   // 가입 페이지 위에 금리 비교를 띄운다. 상품을 고르면 폼에 은행·상품명·금리가 채워진다.
   function openRates() {
     const formType = prefill?.type ?? 'savings';
-    setType(formType);
     const term = prefill?.termMonths ?? settings.goals[formType]?.blades ?? 12;
-    router.push({ pathname: '/pick-product', params: { term: String(term) } });
+    router.push({ pathname: '/pick-product', params: { term: String(term), type: formType } });
   }
 
   async function handleSubmit(input: NewAccountInput) {

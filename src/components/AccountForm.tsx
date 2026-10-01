@@ -166,8 +166,8 @@ export function AccountForm({
   function validate(): string | null {
     const amount = Number(amountText.replace(/,/g, ''));
     if (!amount || amount <= 0) return '금액을 입력해 주세요';
-    const rate = Number(rateText);
-    if (!rateText || isNaN(rate) || rate <= 0) return '금리를 입력해 주세요';
+    const rate = Number(rateText || rateFor(type));
+    if (isNaN(rate) || rate < 0) return '금리를 숫자로 입력해 주세요';
     if (!termMonths || termMonths <= 0) return '가입 기간을 골라 주세요';
     if (type === 'savings') {
       const payDay = Number(payDayText);
@@ -190,7 +190,8 @@ export function AccountForm({
         bank: bank.trim(),
         type,
         amount: Number(amountText.replace(/,/g, '')),
-        rate: Number(rateText || 0),
+        // 비워 두면 입력칸에 보이던 기본 금리로 저장한다.
+        rate: Number(rateText || rateFor(type)),
         taxType,
         startDate,
         termMonths,

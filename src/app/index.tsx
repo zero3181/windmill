@@ -73,6 +73,7 @@ export default function HomeScreen() {
     router.push({
       pathname: '/rates',
       params: {
+        type,
         term: String(checklist?.termMonths ?? blades),
         step: String(step.index + 1),
         amount: String(checklist?.perAccount ?? ''),
