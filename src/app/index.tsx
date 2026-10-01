@@ -14,7 +14,7 @@ import { WindmillHero } from '../components/WindmillHero';
 import { fitsWindmill } from '../lib/blades';
 import { compareISODates, todayKST } from '../lib/calc';
 import { buildChecklist, type ChecklistStep } from '../lib/checklist';
-import { onSavedFeedback, successHaptic } from '../lib/feedback';
+import { notifyUndoable, onSavedFeedback, successHaptic, type Feedback } from '../lib/feedback';
 import { selectWindmill, withFinancials } from '../lib/homeSelectors';
 import { useAccounts } from '../store/AccountsContext';
 import { useWindmillType } from '../store/WindmillTypeContext';
@@ -28,7 +28,7 @@ const NAV_BAR_HEIGHT = 52;
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { accounts, loading, settings, updateSettings, closeAccount } = useAccounts();
+  const { accounts, loading, settings, updateSettings, closeAccount, reopenAccount } = useAccounts();
   const { type, setType } = useWindmillType();
   const today = todayKST();
   const onboardingShown = useRef(false);
@@ -45,15 +45,18 @@ export default function HomeScreen() {
     const t = setTimeout(() => setShowMonths(false), 3000);
     return () => clearTimeout(t);
   }, [showMonths]);
-  const [toast, setToast] = useState<{ message: string | null; id: number }>({ message: null, id: 0 });
+  const [toast, setToast] = useState<{ feedback: Feedback | null; id: number }>({ feedback: null, id: 0 });
 
   // 가입을 기록하고 돌아오면 맨 위로 올려 날개가 자라는 모습을 보여 주고, 안내와 진동을 낸다.
   useEffect(
     () =>
-      onSavedFeedback((message) => {
-        scrollRef.current?.scrollTo({ y: 0, animated: true });
-        setToast((t) => ({ message, id: t.id + 1 }));
-        successHaptic();
+      onSavedFeedback((feedback) => {
+        setToast((t) => ({ feedback, id: t.id + 1 }));
+        // 가입을 기록했을 때만 맨 위로 올려 날개가 자라는 모습을 보여 주고 진동을 낸다.
+        if (!feedback.undo) {
+          scrollRef.current?.scrollTo({ y: 0, animated: true });
+          successHaptic();
+        }
       }),
     []
   );
@@ -167,7 +170,10 @@ export default function HomeScreen() {
         reminderDate={settings.stepReminder[type]}
         matured={matured}
         onRenew={handleRenew}
-        onCloseMatured={(account) => closeAccount(account.id, 'matured')}
+        onCloseMatured={async (account) => {
+          await closeAccount(account.id, 'matured');
+          notifyUndoable('만기 해지했어요', () => reopenAccount(account.id));
+        }}
         onReminder={(step) =>
           router.push({
             pathname: '/step-reminder',
@@ -300,7 +306,12 @@ export default function HomeScreen() {
           </View>
         )}
       </Animated.ScrollView>
-      <Toast message={toast.message} id={toast.id} />
+      <Toast
+        message={toast.feedback?.message ?? null}
+        id={toast.id}
+        actionLabel={toast.feedback?.undo ? '되돌리기' : undefined}
+        onAction={toast.feedback?.undo ? () => void toast.feedback?.undo?.() : undefined}
+      />
     </>
   );
 }

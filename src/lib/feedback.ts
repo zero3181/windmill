@@ -1,8 +1,14 @@
 /**
- * 가입을 기록한 뒤 홈에 보여 줄 짧은 피드백. 가입 시트에서 알리고, 홈이 받아
- * 맨 위로 스크롤해 날개가 자라는 모습을 보여 주고 안내와 진동을 낸다.
+ * 홈에 띄우는 짧은 피드백. 가입을 기록하면 맨 위로 스크롤해 날개가 자라는 모습과 안내·진동을,
+ * 해지·삭제를 하면 '되돌리기'가 붙은 안내를 보여 준다.
  */
-type Listener = (message: string) => void;
+export interface Feedback {
+  message: string;
+  /** 있으면 안내에 '되돌리기' 버튼을 붙인다 */
+  undo?: () => void | Promise<void>;
+}
+
+type Listener = (feedback: Feedback) => void;
 
 let listener: Listener | null = null;
 
@@ -14,7 +20,12 @@ export function onSavedFeedback(next: Listener): () => void {
 }
 
 export function notifySaved(message: string): void {
-  listener?.(message);
+  listener?.({ message });
+}
+
+/** 해지·삭제처럼 되돌릴 수 있는 일을 한 뒤 홈에 '되돌리기'와 함께 알린다. */
+export function notifyUndoable(message: string, undo: () => void | Promise<void>): void {
+  listener?.({ message, undo });
 }
 
 /** 성공 진동. 진동 모듈이 없는 개발용 빌드에서도 앱이 멈추지 않게 조용히 넘어간다. */

@@ -9,6 +9,7 @@ import {
   parseISODate,
   todayKST,
 } from '../../lib/calc';
+import { notifyUndoable } from '../../lib/feedback';
 import { formatDateFull, formatDday, formatPercent, formatWon } from '../../lib/format';
 import { useAccounts } from '../../store/AccountsContext';
 import { colors, radius, spacing } from '../../theme';
@@ -17,7 +18,7 @@ import { TAX_TYPE_LABELS } from '../../types/account';
 export default function AccountDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { accounts, removeAccount, closeAccount } = useAccounts();
+  const { accounts, removeAccount, closeAccount, reopenAccount, restoreAccount } = useAccounts();
   const [busy, setBusy] = useState(false);
   const today = todayKST();
 
@@ -63,26 +64,33 @@ export default function AccountDetailScreen() {
 
   function handleEarlyClose() {
     confirm('중도 해지', '만기 전에 해지했나요? 종료된 계좌로 옮겨져요.', '중도 해지', async () => {
-      await closeAccount(account!.id, 'closed');
+      const id = account!.id;
+      await closeAccount(id, 'closed');
       router.back();
+      notifyUndoable('중도 해지했어요', () => reopenAccount(id));
     });
   }
 
   function handleMaturedClose() {
     confirm('만기 해지', '만기가 되어 해지했나요? 종료된 계좌로 옮겨져요.', '만기 해지', async () => {
-      await closeAccount(account!.id, 'matured');
+      const id = account!.id;
+      await closeAccount(id, 'matured');
       router.back();
+      notifyUndoable('만기 해지했어요', () => reopenAccount(id));
     });
   }
 
   function handleDelete() {
     confirm(
       '계좌 삭제',
-      `'${account!.name}' 계좌를 삭제할까요? 되돌릴 수 없어요.`,
+      `'${account!.name}' 계좌를 삭제할까요?`,
       '삭제',
       async () => {
-        await removeAccount(account!.id);
+        // 삭제 직후 잠깐 '되돌리기'를 보여 주려고 지우기 전 내용을 들고 있는다.
+        const snapshot = account!;
+        await removeAccount(snapshot.id);
         router.back();
+        notifyUndoable('계좌를 삭제했어요', () => restoreAccount(snapshot));
       },
       true
     );
@@ -154,6 +162,13 @@ export default function AccountDetailScreen() {
               disabled={financials.daysToMaturity > 0}
               onPress={busy ? undefined : handleMaturedClose}
             />
+          </GroupedSection>
+        )}
+
+        {/* 잘못 해지했다면 종료된 계좌에서 다시 진행 중으로 되돌릴 수 있다 */}
+        {!isActive && (
+          <GroupedSection>
+            <ListRow title="진행 중으로 되돌리기" tint="primary" onPress={busy ? undefined : () => reopenAccount(account.id)} />
           </GroupedSection>
         )}
 

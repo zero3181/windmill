@@ -35,6 +35,10 @@ interface AccountsContextValue {
   closeAccount: (id: string, status?: 'closed' | 'matured') => Promise<void>;
   updateSettings: (patch: Partial<AppSettings>) => Promise<void>;
   restoreFromBackup: (accounts: Account[], settings: Record<string, string>) => Promise<void>;
+  /** 종료된 계좌를 다시 진행 중으로 (해지를 되돌릴 때) */
+  reopenAccount: (id: string) => Promise<void>;
+  /** 지운 계좌를 그대로 되살린다 (삭제를 되돌릴 때) */
+  restoreAccount: (account: Account) => Promise<void>;
   /** 모든 계좌·설정·예약 알림을 지워 처음 설치한 상태로 되돌린다 */
   resetAll: () => Promise<void>;
   refresh: () => Promise<void>;
@@ -158,6 +162,24 @@ export function AccountsProvider({ children }: { children: React.ReactNode }) {
     [db, refresh]
   );
 
+  const reopenAccount = useCallback(
+    async (id: string) => {
+      const existing = accounts.find((a) => a.id === id);
+      if (!existing) return;
+      await dbUpdateAccount(db, { ...existing, status: 'active', updatedAt: new Date().toISOString() });
+      await refresh();
+    },
+    [db, accounts, refresh]
+  );
+
+  const restoreAccount = useCallback(
+    async (account: Account) => {
+      await insertAccount(db, account);
+      await refresh();
+    },
+    [db, refresh]
+  );
+
   const resetAll = useCallback(async () => {
     await deleteAllAccounts(db);
     await deleteAllSettings(db);
@@ -175,6 +197,8 @@ export function AccountsProvider({ children }: { children: React.ReactNode }) {
     closeAccount,
     updateSettings,
     restoreFromBackup,
+    reopenAccount,
+    restoreAccount,
     resetAll,
     refresh,
     rawSettings,
