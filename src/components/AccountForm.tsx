@@ -1,5 +1,5 @@
 import { Stack, useRouter } from 'expo-router';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { BANKS } from '../lib/banks';
 import { computeMaturityDate, parseISODate, todayKST } from '../lib/calc';
@@ -153,6 +153,14 @@ export function AccountForm({
     if (byUser) setTermTouched(true);
   }
 
+  // 시트는 처음 열릴 때 높이가 정해져서, 세부 정보를 펼치면 펼친 곳까지 스크롤해 보여 준다.
+  const scrollRef = useRef<React.ComponentRef<typeof FormScrollView>>(null);
+  function toggleDetails() {
+    const next = !showDetails;
+    setShowDetails(next);
+    if (next) setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 80);
+  }
+
   function handleTypeChange(next: AccountType) {
     setType(next);
     if (!amountTouched) setAmountText(formatAmount(defaultAmounts[next]));
@@ -216,7 +224,7 @@ export function AccountForm({
         </Stack.Toolbar.Button>
       </Stack.Toolbar>
 
-      <FormScrollView contentContainerStyle={styles.content}>
+      <FormScrollView ref={scrollRef} contentContainerStyle={styles.content}>
         {banner && (
           <View style={styles.banner}>
             <Text style={styles.bannerText}>{banner}</Text>
@@ -299,7 +307,7 @@ export function AccountForm({
           {customBank && <InputRow title="은행 이름" value={bank} onChangeText={setBank} placeholder="OO저축은행" />}
         </GroupedSection>
 
-        <Pressable style={styles.detailsToggle} onPress={() => setShowDetails((v) => !v)} hitSlop={8}>
+        <Pressable style={styles.detailsToggle} onPress={toggleDetails} hitSlop={8}>
           <Text style={styles.detailsToggleText}>세부 정보 {showDetails ? '접기' : '입력'}</Text>
           <Chevron direction={showDetails ? 'up' : 'down'} />
         </Pressable>

@@ -30,3 +30,21 @@ export const BANKS = [
   '웰컴저축은행',
   '페퍼저축은행',
 ] as const;
+
+/** 금융상품한눈에 공시의 금융회사 이름 가운데 앱 목록과 다르게 쓰는 것 */
+const ALIASES: Record<string, string> = {
+  국민은행: 'KB국민은행',
+  농협은행: 'NH농협은행',
+  중소기업은행: 'IBK기업은행',
+  한국스탠다드차타드은행: 'SC제일은행',
+  한국산업은행: 'KDB산업은행',
+  아이엠뱅크: 'iM뱅크',
+  대구은행: 'iM뱅크',
+  Sh수협은행: '수협은행',
+};
+
+/** 공시·사용자 입력의 은행 이름을 앱의 은행 이름으로 맞춘다 ('주식회사' 같은 회사 형태는 뗀다). */
+export function canonicalBank(name: string): string {
+  const trimmed = name.replace(/주식회사|\(주\)|㈜/g, '').replace(/\s+/g, '');
+  return ALIASES[trimmed] ?? trimmed;
+}

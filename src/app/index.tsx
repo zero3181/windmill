@@ -1,6 +1,7 @@
 import { Stack, useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Animated, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AccountListItem } from '../components/AccountListItem';
 import { EmptyState } from '../components/EmptyState';
 import { SamplePreview } from '../components/SamplePreview';
@@ -22,6 +23,8 @@ import type { Account, AccountType } from '../types/account';
 
 const TYPE_LABEL = { savings: '적금', deposit: '예금' } as const;
 const TYPES: AccountType[] = ['savings', 'deposit'];
+/** iOS 내비게이션 바 높이 (홈은 투명 헤더라 그 아래부터 내용을 둔다) */
+const NAV_BAR_HEIGHT = 52;
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -30,6 +33,18 @@ export default function HomeScreen() {
   const today = todayKST();
   const onboardingShown = useRef(false);
   const scrollRef = useRef<ScrollView>(null);
+  const insets = useSafeAreaInsets();
+  const { height: windowHeight } = useWindowDimensions();
+  /** 투명 헤더(… 버튼) 아래에서 시작한다 */
+  const topOffset = insets.top + NAV_BAR_HEIGHT;
+  const [scrollY] = useState(() => new Animated.Value(0));
+  const [heroHeight, setHeroHeight] = useState(0);
+  const [showMonths, setShowMonths] = useState(false);
+  useEffect(() => {
+    if (!showMonths) return;
+    const t = setTimeout(() => setShowMonths(false), 3000);
+    return () => clearTimeout(t);
+  }, [showMonths]);
   const [toast, setToast] = useState<{ message: string | null; id: number }>({ message: null, id: 0 });
 
   // 가입을 기록하고 돌아오면 맨 위로 올려 날개가 자라는 모습을 보여 주고, 안내와 진동을 낸다.
@@ -124,6 +139,7 @@ export default function HomeScreen() {
   }
 
   const otherType = TYPES.find((t) => t !== type)!;
+  const hasData = typesInUse.length > 0;
 
   return (
     <>
@@ -151,85 +167,130 @@ export default function HomeScreen() {
         </Stack.Toolbar.Menu>
       </Stack.Toolbar>
 
-      <ScrollView ref={scrollRef} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.content}>
-        {typesInUse.length === 0 ? (
-          <>
-            <EmptyState />
-            <SamplePreview />
-          </>
-        ) : (
-          <>
-            <WindmillHero blades={blades} filled={windmill.filledBlades} type={type} />
+      {hasData && (
+        // 풍차는 뒤쪽 층에 고정: 스크롤하면 절반 속도로 올라가며 흐려지고, 아래 시트가 덮는다.
+        <Animated.View
+          pointerEvents="none"
+          onLayout={(e) => setHeroHeight(e.nativeEvent.layout.height)}
+          style={[
+            styles.heroLayer,
+            {
+              top: topOffset,
+              opacity: scrollY.interpolate({ inputRange: [0, heroHeight || 1], outputRange: [1, 0.2], extrapolate: 'clamp' }),
+              transform: [
+                {
+                  translateY: scrollY.interpolate({
+                    inputRange: [-200, 0, heroHeight || 1],
+                    outputRange: [100, 0, -(heroHeight || 1) * 0.5],
+                    extrapolateRight: 'clamp',
+                  }),
+                },
+              ],
+            },
+          ]}
+        >
+          <WindmillHero blades={blades} filled={windmill.filledBlades} type={type} showMonths={showMonths} />
+        </Animated.View>
+      )}
 
-            {showTypeSwitch && (
-              <Segmented
-                options={[
-                  { value: 'savings', label: '적금 풍차' },
-                  { value: 'deposit', label: '예금 풍차' },
-                ]}
-                value={type}
-                onChange={setType}
-              />
-            )}
-
-            <WindmillCard
-              windmill={windmill}
-              type={type}
-              size={blades}
-              onSizeChange={
-                goal
-                  ? undefined
-                  : (size) => updateSettings({ windmillSize: { ...settings.windmillSize, [type]: size } })
-              }
-              emptyLabel={`첫 ${TYPE_LABEL[type]}을 가입하면 여기에 가입~만기 그래프가 생겨요`}
+      <Animated.ScrollView
+        ref={scrollRef}
+        contentInsetAdjustmentBehavior="never"
+        scrollEventThrottle={16}
+        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: true })}
+        contentContainerStyle={{ paddingTop: topOffset }}
+      >
+        {hasData ? (
+          <>
+            {/* 풍차가 비쳐 보이는 빈칸. 누르면 각 날개가 몇 월인지 보여 준다. */}
+            <Pressable
+              style={{ height: heroHeight }}
+              onPress={() => setShowMonths(true)}
+              accessibilityRole="button"
+              accessibilityLabel="풍차"
+              accessibilityHint="각 날개가 몇 월인지 보여 줘요"
             />
-
-            {checklist ? (
-              <WindmillChecklist
-                checklist={checklist}
-                type={type}
-                today={today}
-                onJoin={handleJoin}
-                onFindProducts={handleFindProducts}
-                onOpenAccount={(id) => router.push(`/account/${id}`)}
-                reminderDate={settings.stepReminder[type]}
-                matured={matured}
-                onRenew={handleRenew}
-                onCloseMatured={(account) => closeAccount(account.id, 'matured')}
-                onReminder={(step) =>
-                  router.push({
-                    pathname: '/step-reminder',
-                    params: { type, month: step.month, step: String(step.index + 1) },
-                  })
-                }
-              />
-            ) : (
-              <Card style={styles.goalPrompt}>
-                <Text style={styles.goalTitle}>할 일 안내 받기</Text>
-                <Text style={styles.goalBody}>날개 수와 금액만 정하면 할 일을 알려드려요.</Text>
-                <PrimaryButton
-                  label="풍차 만들기"
-                  onPress={() => router.push({ pathname: '/create-windmill', params: { type } })}
+            <View style={[styles.sheet, { minHeight: windowHeight }]}>
+              {showTypeSwitch && (
+                <Segmented
+                  options={[
+                    { value: 'savings', label: '적금 풍차' },
+                    { value: 'deposit', label: '예금 풍차' },
+                  ]}
+                  value={type}
+                  onChange={setType}
                 />
-              </Card>
-            )}
+              )}
 
-            {typeItems.length > 0 && (
-              <GroupedSection title={`내 ${TYPE_LABEL[type]} ${typeItems.length}개`}>
-                {typeItems.map((item) => (
-                  <AccountListItem key={item.account.id} item={item} outsideWindmill={!fitsWindmill(item.account, blades)} />
-                ))}
+              <WindmillCard
+                windmill={windmill}
+                type={type}
+                size={blades}
+                onSizeChange={
+                  goal
+                    ? undefined
+                    : (size) => updateSettings({ windmillSize: { ...settings.windmillSize, [type]: size } })
+                }
+                emptyLabel={`첫 ${TYPE_LABEL[type]}을 가입하면 여기에 가입~만기 그래프가 생겨요`}
+              />
+
+              {checklist ? (
+                <WindmillChecklist
+                  checklist={checklist}
+                  type={type}
+                  today={today}
+                  onJoin={handleJoin}
+                  onFindProducts={handleFindProducts}
+                  onOpenAccount={(id) => router.push(`/account/${id}`)}
+                  reminderDate={settings.stepReminder[type]}
+                  matured={matured}
+                  onRenew={handleRenew}
+                  onCloseMatured={(account) => closeAccount(account.id, 'matured')}
+                  onReminder={(step) =>
+                    router.push({
+                      pathname: '/step-reminder',
+                      params: { type, month: step.month, step: String(step.index + 1) },
+                    })
+                  }
+                />
+              ) : (
+                <Card style={styles.goalPrompt}>
+                  <Text style={styles.goalTitle}>할 일 안내 받기</Text>
+                  <Text style={styles.goalBody}>날개 수와 금액만 정하면 할 일을 알려드려요.</Text>
+                  <PrimaryButton
+                    label="풍차 만들기"
+                    onPress={() => router.push({ pathname: '/create-windmill', params: { type } })}
+                  />
+                </Card>
+              )}
+
+              {typeItems.length > 0 && (
+                <GroupedSection title={`내 ${TYPE_LABEL[type]} ${typeItems.length}개`}>
+                  {typeItems.map((item) => (
+                    <AccountListItem key={item.account.id} item={item} outsideWindmill={!fitsWindmill(item.account, blades)} />
+                  ))}
+                </GroupedSection>
+              )}
+
+            {endedCount > 0 && (
+              <GroupedSection>
+                <ListRow title="종료된 계좌" detail={`${endedCount}개`} chevron onPress={() => router.push('/archive')} />
               </GroupedSection>
             )}
+            </View>
           </>
+        ) : (
+          <View style={styles.content}>
+            <EmptyState />
+            <SamplePreview />
+            {endedCount > 0 && (
+              <GroupedSection>
+                <ListRow title="종료된 계좌" detail={`${endedCount}개`} chevron onPress={() => router.push('/archive')} />
+              </GroupedSection>
+            )}
+          </View>
         )}
-
-        {endedCount > 0 && (
-          <GroupedSection>
-            <ListRow title="종료된 계좌" detail={`${endedCount}개`} chevron onPress={() => router.push('/archive')} />
-          </GroupedSection>
-        )}
-      </ScrollView>
+      </Animated.ScrollView>
       <Toast message={toast.message} id={toast.id} />
     </>
   );
@@ -247,6 +308,26 @@ const styles = StyleSheet.create({
     paddingTop: spacing.sm,
     paddingBottom: spacing.xxl * 2,
     gap: spacing.xl - 4,
+  },
+  heroLayer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+  },
+  // 풍차 위로 덮어 올라오는 판: 배경색을 깔고 위쪽 모서리를 둥글게, 살짝 그림자를 준다.
+  sheet: {
+    backgroundColor: colors.bg,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.lg,
+    paddingBottom: spacing.xxl * 2,
+    gap: spacing.xl - 4,
+    shadowColor: '#000',
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: -4 },
   },
   goalPrompt: {
     gap: spacing.sm,

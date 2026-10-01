@@ -1,5 +1,6 @@
 import React from 'react';
 import { Image, StyleSheet, Text, View, type ImageSourcePropType } from 'react-native';
+import { canonicalBank } from '../lib/banks';
 
 /** 은행 로고 (Figma 보드의 은행 CI에서 받아 3배 해상도로 넣었다). 저축은행은 공용 저축은행 로고를 쓴다. */
 const LOGOS: Record<string, ImageSourcePropType> = {
@@ -29,7 +30,8 @@ const LOGOS: Record<string, ImageSourcePropType> = {
 const SAVINGS_BANK_LOGO: ImageSourcePropType = require('../../assets/banks/savings.png');
 
 function logoFor(bank: string): ImageSourcePropType | undefined {
-  return LOGOS[bank] ?? (bank.endsWith('저축은행') ? SAVINGS_BANK_LOGO : undefined);
+  const name = canonicalBank(bank);
+  return LOGOS[name] ?? (name.endsWith('저축은행') ? SAVINGS_BANK_LOGO : undefined);
 }
 
 export function BankBadge({ bank, size = 20 }: { bank: string; size?: number }) {

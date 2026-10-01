@@ -1,11 +1,11 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { BankBadge } from '../components/BankBadge';
 import { Chip, PrimaryButton, Segmented } from '../components/ui/Controls';
 import { Chevron, GroupedSection } from '../components/ui/Grouped';
 import { loadProducts, rankProducts, type FinProduct, type ProductsResult } from '../lib/finlife';
 import { formatWon } from '../lib/format';
-import { useAccounts } from '../store/AccountsContext';
 import { useWindmillType } from '../store/WindmillTypeContext';
 import { colors, radius, spacing } from '../theme';
 import type { AccountType } from '../types/account';
@@ -19,7 +19,6 @@ export default function RatesScreen({ pick = false }: { pick?: boolean }) {
   const router = useRouter();
   /** step·amount: 풍차 체크리스트에서 들어왔을 때 그 단계와 계좌당 금액 (상품을 고르면 그대로 이어서 등록) */
   const params = useLocalSearchParams<{ term?: string; count?: string; step?: string; amount?: string; type?: AccountType }>();
-  const { accounts } = useAccounts();
   // 홈과 공유하는 값을 바꾸면 홈이 다시 되돌려 버려서, 이 화면 안에서만 쓰는 값으로 둔다.
   const { type: homeType } = useWindmillType();
   const [type, setType] = useState<AccountType>(params.type === 'deposit' || params.type === 'savings' ? params.type : homeType);
@@ -31,7 +30,6 @@ export default function RatesScreen({ pick = false }: { pick?: boolean }) {
     setParamTerm(params.term);
     if (params.term) setTermMonths(Number(params.term) || 12);
   }
-  const [excludeMine, setExcludeMine] = useState(true);
   const [openOnly, setOpenOnly] = useState(true);
   const [onlineOnly, setOnlineOnly] = useState(true);
   const [firstTierOnly, setFirstTierOnly] = useState(false);
@@ -69,23 +67,17 @@ export default function RatesScreen({ pick = false }: { pick?: boolean }) {
     setRefreshing(false);
   }
 
-  const myCompanies = useMemo(
-    () => Array.from(new Set(accounts.filter((a) => a.status === 'active').map((a) => a.bank))),
-    [accounts]
-  );
-
   const ranked = useMemo(
     () =>
       products
         ? rankProducts(products, {
             termMonths,
-            excludeCompanies: excludeMine ? myCompanies : [],
             openOnly,
             firstTierOnly,
             onlineOnly,
           }).slice(0, LIST_LIMIT)
         : [],
-    [products, termMonths, excludeMine, myCompanies, openOnly, onlineOnly, firstTierOnly]
+    [products, termMonths, openOnly, onlineOnly, firstTierOnly]
   );
 
   const disclosureMonth = products?.[0]?.disclosureMonth;
@@ -147,9 +139,6 @@ export default function RatesScreen({ pick = false }: { pick?: boolean }) {
             selected={firstTierOnly}
             onPress={() => setFirstTierOnly((v) => !v)}
           />
-          {myCompanies.length > 0 && (
-            <Chip label={`${excludeMine ? '✓ ' : ''}가입한 곳 제외`} selected={excludeMine} onPress={() => setExcludeMine((v) => !v)} />
-          )}
         </View>
         <Text style={styles.source}>
           금융감독원 금융상품한눈에
@@ -212,6 +201,7 @@ function ProductRow({
         <Text style={styles.rank} numberOfLines={1}>
           {rank}
         </Text>
+        <BankBadge bank={p.company} size={28} />
         <View style={styles.rowMain}>
           <Text style={styles.name} numberOfLines={open ? undefined : 1}>
             {p.name}

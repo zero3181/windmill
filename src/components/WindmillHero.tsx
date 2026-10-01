@@ -9,7 +9,18 @@ import { Windmill } from './Windmill';
 const NAME_MISSING_UP_TO = 3;
 
 /** 홈 맨 위의 큰 풍차와 한 줄 안내. */
-export function WindmillHero({ blades, filled, type }: { blades: number; filled: number[]; type: AccountType }) {
+export function WindmillHero({
+  blades,
+  filled,
+  type,
+  showMonths: showMonthsProp,
+}: {
+  blades: number;
+  filled: number[];
+  type: AccountType;
+  /** 바깥(홈의 패럴랙스 스크롤)에서 월 숫자 표시를 정할 때 */
+  showMonths?: boolean;
+}) {
   const filledSet = new Set(filled);
   const missing = allBlades(blades)
     .filter((p) => !filledSet.has(p))
@@ -40,7 +51,7 @@ export function WindmillHero({ blades, filled, type }: { blades: number; filled:
         accessibilityRole="button"
         accessibilityHint="각 날개가 몇 월인지 보여 줘요"
       >
-        <Windmill blades={blades} filled={filled} width={238} type={type} showMonths={showMonths} />
+        <Windmill blades={blades} filled={filled} width={238} type={type} showMonths={showMonthsProp ?? showMonths} />
       </Pressable>
       <Text style={styles.caption}>{caption}</Text>
     </View>
