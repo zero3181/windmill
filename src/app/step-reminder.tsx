@@ -75,12 +75,8 @@ export default function StepReminderScreen() {
     <>
       <HeaderActions left={{ label: '닫기', onPress: () => router.back() }} />
       <Stack.Screen options={{ title: `${label} 알림` }} />
-      {/* 시트 제목줄 아래에서 시작하도록 스크롤 뷰의 자동 여백을 쓴다 (내용만큼만 차지) */}
-      <ScrollView
-        style={styles.scroll}
-        contentInsetAdjustmentBehavior="automatic"
-        contentContainerStyle={styles.content}
-      >
+      {/* 내용만큼만 차지하고, 넘치면 스크롤한다 */}
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         {Platform.OS === 'ios' ? (
           <DateTimePicker
             style={styles.calendar}
@@ -88,6 +84,8 @@ export default function StepReminderScreen() {
             mode="date"
             display="inline"
             locale="ko-KR"
+            // 선택한 날을 앱의 파란색으로 (지정하지 않으면 검정으로 그려진다). 다크 모드에서도 같은 파랑이 잘 보인다.
+            accentColor="#0088FF"
             minimumDate={toDate(today)}
             onChange={(_e, picked) => picked && setDate(toISO(picked))}
           />

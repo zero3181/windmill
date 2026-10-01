@@ -44,6 +44,7 @@ export function PrimaryButton({
         (pressed || disabled) && styles.buttonPressed,
       ]}
       onPress={onPress}
+      accessibilityRole="button"
       disabled={disabled}
     >
       <Text style={[styles.buttonText, variant === 'plain' && styles.buttonTextPlain]}>{label}</Text>
@@ -88,7 +89,12 @@ export function Chip({
   icon?: React.ReactNode;
 }) {
   return (
-    <Pressable style={[styles.chip, icon ? styles.chipWithIcon : null, selected && styles.chipSelected]} onPress={onPress}>
+    <Pressable
+      style={[styles.chip, icon ? styles.chipWithIcon : null, selected && styles.chipSelected]}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ selected }}
+    >
       {icon}
       <Text style={[styles.chipText, selected && styles.chipTextSelected]}>{label}</Text>
     </Pressable>

@@ -29,7 +29,12 @@ export function PickerRow<T extends string | number>({
   const current = options.find((o) => o.value === value);
   return (
     <View>
-      <Pressable style={({ pressed }) => [styles.row, pressed && styles.pressed]} onPress={onToggle}>
+      <Pressable
+        style={({ pressed }) => [styles.row, pressed && styles.pressed]}
+        onPress={onToggle}
+        accessibilityRole="button"
+        accessibilityState={{ expanded: open }}
+      >
         <Text style={styles.title}>{title}</Text>
         {current?.icon}
         <Text style={[styles.detail, open && styles.detailOpen, !current && styles.detailPlaceholder]}>
@@ -143,7 +148,7 @@ export function DateRow({
   }
   return (
     <>
-      <Pressable style={styles.row} onPress={() => setAndroidOpen(true)}>
+      <Pressable style={styles.row} onPress={() => setAndroidOpen(true)} accessibilityRole="button">
         <Text style={styles.title}>{title}</Text>
         <Text style={styles.detail}>{formatDateFull(value)}</Text>
       </Pressable>

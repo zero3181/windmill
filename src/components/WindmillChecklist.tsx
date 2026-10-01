@@ -146,6 +146,8 @@ export function WindmillChecklist({
                   accessibilityLabel={reminderDate ? `${formatDateShort(reminderDate)}에 가입 알림, 바꾸기` : `${month} 가입 알림 받기`}
                 >
                   <SymbolView
+                    accessibilityElementsHidden
+                    importantForAccessibility="no-hide-descendants"
                     name={
                       reminderDate
                         ? { ios: 'bell.fill', android: 'notifications_active' }
@@ -190,6 +192,8 @@ const DONE_ICON: SymbolViewProps['name'] = { ios: 'checkmark.circle.fill', andro
 function StepIcon({ name, color }: { name: SymbolViewProps['name']; color: ColorValue }) {
   return (
     <SymbolView
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
       name={name}
       size={24}
       tintColor={color}

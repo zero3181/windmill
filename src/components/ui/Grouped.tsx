@@ -76,6 +76,7 @@ export function ListRow({
       onPress={onPress}
       onLongPress={onLongPress}
       disabled={disabled || (!onPress && !onLongPress)}
+      accessibilityRole={onPress ? 'button' : undefined}
       accessibilityState={{ disabled }}
     >
       <View style={styles.rowMain}>
@@ -105,6 +106,8 @@ export function ListRow({
 export function Chevron({ direction = 'right' }: { direction?: 'right' | 'down' | 'up' }) {
   return (
     <SymbolView
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
       name={
         direction === 'right'
           ? { ios: 'chevron.right', android: 'chevron_right' }

@@ -13,11 +13,18 @@ import { colors, useDarkMode } from '../theme';
 
 /**
  * 내용 높이만큼만 올라오는 시트 (아래 빈 영역이 생기지 않게).
+ * iOS: 제목줄을 투명하게 두면 내용이 제목줄 밑에서 시작하는데 시트 높이는 제목줄 높이를 더해 잡혀서,
+ * 맨 아래 내용이 터치 영역 밖으로 밀려난다. 불투명 제목줄로 내용이 제목줄 아래에서 시작하게 한다.
  * Android 시트에는 제목줄(취소·저장 버튼)이 없어서 제목줄이 있는 전체 화면 모달로 연다.
  */
 const FIT_SHEET =
   Platform.OS === 'ios'
-    ? ({ presentation: 'formSheet', sheetAllowedDetents: 'fitToContents', sheetGrabberVisible: true } as const)
+    ? ({
+        presentation: 'formSheet',
+        sheetAllowedDetents: 'fitToContents',
+        sheetGrabberVisible: true,
+        headerTransparent: false,
+      } as const)
     : ({ presentation: 'modal' } as const);
 
 export default function RootLayout() {

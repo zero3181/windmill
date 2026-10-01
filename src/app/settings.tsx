@@ -61,9 +61,8 @@ export default function SettingsScreen() {
         style: 'destructive',
         onPress: async () => {
           await resetAll();
-          // 홈으로 돌아가 처음 설치했을 때처럼 소개부터 보여 준다.
-          router.dismissAll();
-          router.push('/onboarding');
+          // 홈으로 돌아가면 홈이 처음 설치했을 때처럼 소개를 연다.
+          router.back();
         },
       },
     ]);

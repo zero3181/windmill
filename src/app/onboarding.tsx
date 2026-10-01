@@ -40,7 +40,7 @@ export default function OnboardingScreen() {
     <View style={[styles.screen, { paddingTop: insets.top, paddingBottom: insets.bottom + spacing.lg }]}>
       <View style={styles.topBar}>
         {!isLast && (
-          <Pressable onPress={finish} hitSlop={12}>
+          <Pressable onPress={finish} hitSlop={12} accessibilityRole="button">
             <Text style={styles.skip}>건너뛰기</Text>
           </Pressable>
         )}
@@ -82,11 +82,11 @@ export default function OnboardingScreen() {
 
       <View style={styles.actions}>
         {isLast ? (
-          <Pressable style={styles.primaryButton} onPress={finish}>
+          <Pressable style={styles.primaryButton} onPress={finish} accessibilityRole="button">
             <Text style={styles.primaryButtonText}>풍차 만들기</Text>
           </Pressable>
         ) : (
-          <Pressable style={styles.primaryButton} onPress={goNext}>
+          <Pressable style={styles.primaryButton} onPress={goNext} accessibilityRole="button">
             <Text style={styles.primaryButtonText}>다음</Text>
           </Pressable>
         )}
@@ -125,7 +125,14 @@ function BenefitList() {
       {BENEFITS.map((b) => (
         <View key={b.title} style={styles.benefit}>
           <View style={styles.benefitIcon}>
-            <SymbolView name={b.icon} size={22} tintColor={colors.primary} fallback={null} />
+            <SymbolView
+              accessibilityElementsHidden
+              importantForAccessibility="no-hide-descendants"
+              name={b.icon}
+              size={22}
+              tintColor={colors.primary}
+              fallback={null}
+            />
           </View>
           <View style={styles.benefitText}>
             <Text style={styles.benefitTitle}>{b.title}</Text>

@@ -304,7 +304,7 @@ export function AccountForm({
           {customBank && <InputRow title="은행 이름" value={bank} onChangeText={setBank} placeholder="OO저축은행" />}
         </GroupedSection>
 
-        <Pressable style={styles.detailsToggle} onPress={toggleDetails} hitSlop={8}>
+        <Pressable style={styles.detailsToggle} onPress={toggleDetails} hitSlop={8} accessibilityRole="button">
           <Text style={styles.detailsToggleText}>세부 정보 {showDetails ? '접기' : '입력'}</Text>
           <Chevron direction={showDetails ? 'up' : 'down'} />
         </Pressable>
@@ -332,7 +332,7 @@ export function AccountForm({
               {maturityDate ? <DateRow title="만기일" value={maturityDate} onChange={setMaturityOverride} /> : null}
             </GroupedSection>
             {maturityOverride !== null && (
-              <Pressable onPress={() => setMaturityOverride(null)} hitSlop={8}>
+              <Pressable onPress={() => setMaturityOverride(null)} hitSlop={8} accessibilityRole="button">
                 <Text style={styles.resetLink}>만기일 자동 계산으로 되돌리기</Text>
               </Pressable>
             )}

@@ -1,5 +1,5 @@
-import { Stack, useRouter } from 'expo-router';
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Stack, useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Animated, Platform, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AccountListItem } from '../components/AccountListItem';
@@ -33,7 +33,6 @@ export default function HomeScreen() {
     useAccounts();
   const { type, setType } = useWindmillType();
   const today = todayKST();
-  const onboardingShown = useRef(false);
   const scrollRef = useRef<ScrollView>(null);
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
@@ -69,11 +68,14 @@ export default function HomeScreen() {
     []
   );
 
-  useEffect(() => {
-    if (loading || settings.onboardingDone || onboardingShown.current) return;
-    onboardingShown.current = true;
-    router.push('/onboarding');
-  }, [loading, settings.onboardingDone, router]);
+  // 소개를 아직 안 봤으면(처음 설치·초기화) 홈이 보일 때 소개를 연다. 소개를 여는 곳은 여기 하나뿐이라
+  // 겹쳐 열리지 않고, 다른 화면이 닫히는 중에는 홈이 아직 보이지 않으므로 기다렸다가 연다.
+  useFocusEffect(
+    useCallback(() => {
+      if (loading || settings.onboardingDone) return;
+      router.push('/onboarding');
+    }, [loading, settings.onboardingDone, router])
+  );
 
   const activeAccounts = useMemo(() => accounts.filter((a) => a.status === 'active'), [accounts]);
   const endedCount = accounts.length - activeAccounts.length;
