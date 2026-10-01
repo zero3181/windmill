@@ -98,10 +98,9 @@ export default function RatesScreen({ pick = false }: { pick?: boolean }) {
     });
   }
 
-  const renderRow = (p: FinProduct, i: number) => (
+  const renderRow = (p: FinProduct) => (
     <ProductRow
       key={p.id}
-      rank={i + 1}
       product={p}
       open={expanded === p.id}
       onToggle={() => setExpanded((cur) => (cur === p.id ? null : p.id))}
@@ -161,14 +160,14 @@ export default function RatesScreen({ pick = false }: { pick?: boolean }) {
       ) : (
         <>
           {planned.length > 0 && (
-            <GroupedSection title={`풍차 ${planCount}개 추천`}>{planned.map((p, i) => renderRow(p, i))}</GroupedSection>
+            <GroupedSection title={`풍차 ${planCount}개 추천`}>{planned.map(renderRow)}</GroupedSection>
           )}
           {others.length > 0 && (
             <GroupedSection
               title={planned.length > 0 ? '그 외' : undefined}
               footer="가입 조건은 가입 전에 은행에서 확인해 주세요."
             >
-              {others.map((p, i) => renderRow(p, planned.length + i))}
+              {others.map(renderRow)}
             </GroupedSection>
           )}
         </>
@@ -178,14 +177,12 @@ export default function RatesScreen({ pick = false }: { pick?: boolean }) {
 }
 
 function ProductRow({
-  rank,
   product: p,
   open,
   onToggle,
   onRegister,
   registerLabel,
 }: {
-  rank: number;
   product: FinProduct;
   open: boolean;
   onToggle: () => void;
@@ -198,9 +195,6 @@ function ProductRow({
   return (
     <View>
       <Pressable style={({ pressed }) => [styles.row, pressed && styles.rowPressed]} onPress={onToggle}>
-        <Text style={styles.rank} numberOfLines={1}>
-          {rank}
-        </Text>
         <BankBadge bank={p.company} size={28} />
         <View style={styles.rowMain}>
           <Text style={styles.name} numberOfLines={open ? undefined : 1}>
@@ -287,14 +281,6 @@ const styles = StyleSheet.create({
   },
   rowPressed: {
     backgroundColor: colors.barEmpty,
-  },
-  // 두 자리 순위도 한 줄에 들어가게 폭을 넉넉히, 숫자 폭은 고정폭으로 맞춘다.
-  rank: {
-    minWidth: 26,
-    fontVariant: ['tabular-nums'],
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.textFaint,
   },
   rowMain: {
     flex: 1,
