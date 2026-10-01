@@ -1,9 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { todayKST } from '../lib/calc';
 import { selectWindmill, withFinancials } from '../lib/homeSelectors';
 import { buildSampleAccounts } from '../lib/sampleData';
 import { radius, spacing } from '../theme';
+import type { AccountType } from '../types/account';
+import { Segmented } from './ui/Controls';
 import { WindmillCard } from './WindmillCard';
 import { WindmillHero } from './WindmillHero';
 
@@ -11,31 +13,40 @@ import { WindmillHero } from './WindmillHero';
 const STAMP_INK = 'rgba(0, 0, 0, 0.78)';
 
 /**
- * 계좌가 하나도 없을 때 홈 아래에 보여 주는 미리보기: 다 채워져 돌아가는 풍차와 그래프.
- * 실제 데이터가 아니라는 것을 '샘플 데이터' 표시로 덮어 알리고, 누를 수 없게 한다.
+ * 계좌가 하나도 없을 때 홈 아래에 보여 주는 미리보기. 데이터가 있을 때의 홈과 같은 순서로
+ * 다 채워져 돌아가는 풍차, 적금/예금 풍차 전환, 그래프를 보여 준다.
+ * 전체 가운데에 'SAMPLE' 도장을 찍어 실제 데이터가 아님을 알린다. 전환만 누를 수 있다.
  */
 export function SamplePreview() {
   const today = todayKST();
+  const [type, setType] = useState<AccountType>('savings');
   const windmill = useMemo(
-    () => selectWindmill(withFinancials(buildSampleAccounts(today), today), 'savings', today, 12),
-    [today]
+    () => selectWindmill(withFinancials(buildSampleAccounts(today, type), today), type, today, 12),
+    [today, type]
   );
 
   return (
-    <View style={styles.wrap} pointerEvents="none" accessibilityLabel="샘플 데이터 미리보기">
-      <View style={styles.preview}>
-        <WindmillHero blades={12} filled={windmill.filledBlades} type="savings" />
+    <View style={styles.wrap} accessibilityLabel="샘플 데이터 미리보기">
+      <View style={styles.dim} pointerEvents="none">
+        <WindmillHero blades={12} filled={windmill.filledBlades} type={type} />
       </View>
-      {/* 그래프 카드 한가운데에 비스듬히 찍힌 도장: 풍차는 가리지 않고 실제 데이터가 아님을 알린다 */}
-      <View>
-        <View style={styles.preview}>
-          <WindmillCard windmill={windmill} type="savings" size={12} sample emptyLabel="" />
-        </View>
-        <View style={styles.stampLayer}>
-          <View style={styles.stamp}>
-            <View style={styles.stampInner}>
-              <Text style={styles.stampText}>SAMPLE</Text>
-            </View>
+      <Segmented
+        options={[
+          { value: 'savings', label: '적금 풍차' },
+          { value: 'deposit', label: '예금 풍차' },
+        ]}
+        value={type}
+        onChange={setType}
+      />
+      <View style={styles.dim} pointerEvents="none">
+        <WindmillCard windmill={windmill} type={type} size={12} sample emptyLabel="" />
+      </View>
+
+      {/* 풍차와 그래프 전체의 가운데에 비스듬히 찍힌 도장. 아래 전환은 그대로 누를 수 있다. */}
+      <View style={styles.stampLayer} pointerEvents="none">
+        <View style={styles.stamp}>
+          <View style={styles.stampInner}>
+            <Text style={styles.stampText}>SAMPLE</Text>
           </View>
         </View>
       </View>
@@ -47,7 +58,7 @@ const styles = StyleSheet.create({
   wrap: {
     gap: spacing.xl - 4,
   },
-  preview: {
+  dim: {
     opacity: 0.6,
   },
   stampLayer: {
