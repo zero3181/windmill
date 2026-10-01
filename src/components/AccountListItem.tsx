@@ -12,7 +12,7 @@ export function AccountListItem({ item, outsideWindmill = false }: { item: Accou
   const router = useRouter();
   const { account, financials } = item;
   const isSample = isSampleAccount(account.id);
-  const status = account.status === 'closed' ? '해지' : account.status === 'matured' ? '만기' : formatDday(financials.daysToMaturity);
+  const status = account.status === 'closed' ? '중도 해지' : account.status === 'matured' ? '만기 해지' : formatDday(financials.daysToMaturity);
 
   return (
     <ListRow

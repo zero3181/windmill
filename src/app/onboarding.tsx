@@ -18,15 +18,16 @@ export default function OnboardingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const { updateSettings } = useAccounts();
+  const { settings, updateSettings } = useAccounts();
   const scrollRef = useRef<ScrollView>(null);
   const [page, setPage] = useState(0);
   const isLast = page === PAGE_COUNT - 1;
 
-  async function finish(next?: '/create-windmill') {
+  // 소개가 끝나면(건너뛰어도) 바로 풍차 만들기로 간다. 이미 풍차가 있으면 홈으로 돌아간다.
+  async function finish() {
     await updateSettings({ onboardingDone: true });
     router.back();
-    if (next) router.push(next);
+    if (!settings.goals.savings && !settings.goals.deposit) router.push('/create-windmill');
   }
 
   function goNext() {
@@ -38,7 +39,7 @@ export default function OnboardingScreen() {
     <View style={[styles.screen, { paddingTop: insets.top, paddingBottom: insets.bottom + spacing.lg }]}>
       <View style={styles.topBar}>
         {!isLast && (
-          <Pressable onPress={() => finish()} hitSlop={12}>
+          <Pressable onPress={finish} hitSlop={12}>
             <Text style={styles.skip}>건너뛰기</Text>
           </Pressable>
         )}
@@ -86,14 +87,9 @@ export default function OnboardingScreen() {
 
       <View style={styles.actions}>
         {isLast ? (
-          <>
-            <Pressable style={styles.primaryButton} onPress={() => finish('/create-windmill')}>
-              <Text style={styles.primaryButtonText}>풍차 만들기</Text>
-            </Pressable>
-            <Pressable style={styles.secondaryButton} onPress={() => finish()}>
-              <Text style={styles.secondaryButtonText}>먼저 둘러볼게요</Text>
-            </Pressable>
-          </>
+          <Pressable style={styles.primaryButton} onPress={finish}>
+            <Text style={styles.primaryButtonText}>풍차 만들기</Text>
+          </Pressable>
         ) : (
           <Pressable style={styles.primaryButton} onPress={goNext}>
             <Text style={styles.primaryButtonText}>다음</Text>
@@ -322,23 +318,15 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   primaryButton: {
+    height: 50,
     backgroundColor: colors.primary,
     borderRadius: radius.full,
-    paddingVertical: spacing.md + 2,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   primaryButtonText: {
     color: '#fff',
     fontSize: 16,
     fontWeight: '700',
-  },
-  secondaryButton: {
-    paddingVertical: spacing.md,
-    alignItems: 'center',
-  },
-  secondaryButtonText: {
-    color: colors.textMuted,
-    fontSize: 15,
-    fontWeight: '600',
   },
 });

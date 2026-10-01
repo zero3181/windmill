@@ -1,5 +1,5 @@
 import type { Account } from '../types/account';
-import { selectSummary, selectThisMonth, selectTimeline, selectUpcoming, selectWindmill, withFinancials } from './homeSelectors';
+import { selectSummary, selectThisMonth, selectTimeline, selectWindmill, withFinancials } from './homeSelectors';
 
 function makeAccount(overrides: Partial<Account>): Account {
   return {
@@ -152,33 +152,5 @@ describe('selectWindmill', () => {
     const w = selectWindmill([], 'deposit', '2026-09-27');
     expect(w.bars).toEqual([]);
     expect(w.monthCount).toBe(1);
-  });
-});
-
-describe('selectUpcoming', () => {
-  const today = '2026-09-27';
-  const accounts = [
-    makeAccount({ id: 'd1', type: 'deposit', startDate: '2025-12-05', maturityDate: '2026-12-05' }),
-    makeAccount({ id: 'd2', type: 'deposit', startDate: '2025-10-10', maturityDate: '2026-10-10' }),
-    makeAccount({ id: 'd0', type: 'deposit', startDate: '2025-09-20', maturityDate: '2026-09-20' }),
-    makeAccount({ id: 's1', type: 'savings', startDate: '2025-10-01', maturityDate: '2026-10-01' }),
-  ];
-
-  it('lists maturities within 30 days of the chosen type, overdue first', () => {
-    const r = selectUpcoming(withFinancials(accounts, today), 'deposit');
-    expect(r.items.map((i) => i.account.id)).toEqual(['d0', 'd2']);
-    expect(r.nextOnly).toBe(false);
-  });
-
-  it('falls back to the single nearest maturity', () => {
-    const later = [makeAccount({ id: 'd1', type: 'deposit', startDate: '2025-12-05', maturityDate: '2026-12-05' })];
-    const r = selectUpcoming(withFinancials(later, today), 'deposit');
-    expect(r.items.map((i) => i.account.id)).toEqual(['d1']);
-    expect(r.nextOnly).toBe(true);
-  });
-
-  it('is empty when there is no account of that type', () => {
-    const depositsOnly = accounts.filter((a) => a.type === 'deposit');
-    expect(selectUpcoming(withFinancials(depositsOnly, today), 'savings')).toEqual({ items: [], nextOnly: false });
   });
 });

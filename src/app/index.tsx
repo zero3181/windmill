@@ -5,14 +5,13 @@ import { AccountListItem } from '../components/AccountListItem';
 import { EmptyState } from '../components/EmptyState';
 import { PrimaryButton, Segmented } from '../components/ui/Controls';
 import { Card, GroupedSection, ListRow } from '../components/ui/Grouped';
-import { UpcomingSection } from '../components/UpcomingSection';
 import { WindmillCard } from '../components/WindmillCard';
 import { WindmillChecklist } from '../components/WindmillChecklist';
 import { WindmillHero } from '../components/WindmillHero';
 import { fitsWindmill } from '../lib/blades';
 import { todayKST } from '../lib/calc';
 import { buildChecklist, type ChecklistStep } from '../lib/checklist';
-import { selectUpcoming, selectWindmill, withFinancials } from '../lib/homeSelectors';
+import { selectWindmill, withFinancials } from '../lib/homeSelectors';
 import { ensureNotificationSetup } from '../lib/notifications';
 import { useAccounts } from '../store/AccountsContext';
 import { useWindmillType } from '../store/WindmillTypeContext';
@@ -59,7 +58,6 @@ export default function HomeScreen() {
         .sort((a, b) => a.financials.daysToMaturity - b.financials.daysToMaturity),
     [items, type]
   );
-  const upcoming = useMemo(() => selectUpcoming(items, type), [items, type]);
   const windmill = useMemo(() => selectWindmill(items, type, today, blades), [items, type, today, blades]);
   const checklist = useMemo(
     () => (goal ? buildChecklist(goal, type, activeAccounts, today) : null),
@@ -142,7 +140,6 @@ export default function HomeScreen() {
                 ]}
                 value={type}
                 onChange={setType}
-                size="large"
               />
             )}
 
@@ -171,15 +168,13 @@ export default function HomeScreen() {
             ) : (
               <Card style={styles.goalPrompt}>
                 <Text style={styles.goalTitle}>할 일 안내 받기</Text>
-                <Text style={styles.goalBody}>날개 수와 금액을 정하면 매달 무엇을 가입하면 되는지 알려드려요.</Text>
+                <Text style={styles.goalBody}>날개 수와 금액만 정하면 할 일을 알려드려요.</Text>
                 <PrimaryButton
                   label="풍차 만들기"
                   onPress={() => router.push({ pathname: '/create-windmill', params: { type } })}
                 />
               </Card>
             )}
-
-            <UpcomingSection upcoming={upcoming} />
 
             {typeItems.length > 0 && (
               <GroupedSection title={`내 ${TYPE_LABEL[type]} ${typeItems.length}개`}>

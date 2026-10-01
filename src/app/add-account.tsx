@@ -64,7 +64,6 @@ export default function NewAccountScreen() {
                 {prefill.termMonths}개월 {unit} · {unit === '적금' ? '월 ' : ''}
                 {formatManwon(prefill.amount ?? 0)}
               </Text>
-              <Text style={styles.guideHint}>가입한 뒤 아래 내용을 확인하고 저장해 주세요.</Text>
             </Card>
           ) : null
         }
@@ -87,10 +86,5 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
     color: colors.primary,
-  },
-  guideHint: {
-    fontSize: 13,
-    color: colors.textMuted,
-    lineHeight: 18,
   },
 });

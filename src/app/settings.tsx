@@ -79,13 +79,10 @@ export default function SettingsScreen() {
         })}
       </GroupedSection>
 
-      <GroupedSection
-        title="세부 기능"
-        footer="만기 주기·금리까지 직접 따져 보고 싶을 때 쓰는 기능이에요."
-      >
-        <ListRow title="풍차 계산기" subtitle="만기 주기·예상 이자 계산" chevron onPress={() => router.push('/calculator')} />
-        <ListRow title="금리 비교" subtitle="은행·저축은행 예·적금 금리 순위" chevron onPress={() => router.push('/rates')} />
-        <ListRow title="계좌 직접 등록" subtitle="풍차와 상관없이 가입한 계좌 등록" chevron onPress={() => router.push('/add-account')} />
+      <GroupedSection title="세부 기능">
+        <ListRow title="풍차 계산기" chevron onPress={() => router.push('/calculator')} />
+        <ListRow title="금리 비교" chevron onPress={() => router.push('/rates')} />
+        <ListRow title="계좌 직접 등록" chevron onPress={() => router.push('/add-account')} />
       </GroupedSection>
 
       <GroupedSection title="알림">
@@ -98,7 +95,7 @@ export default function SettingsScreen() {
         />
       </GroupedSection>
 
-      <GroupedSection title="기본 과세 구분" footer="계좌 등록과 계산기 예상 이자에 쓰여요.">
+      <GroupedSection title="기본 과세 구분">
         {(Object.keys(TAX_TYPE_LABELS) as TaxType[]).map((key) => (
           <ListRow
             key={key}

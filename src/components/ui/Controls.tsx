@@ -3,25 +3,24 @@ import React from 'react';
 import { Pressable, StyleSheet, Text } from 'react-native';
 import { colors, radius, spacing } from '../../theme';
 
+const CONTROL_HEIGHT = 50;
+
 /** iOS 네이티브 세그먼트 컨트롤. */
 export function Segmented<T extends string>({
   options,
   value,
   onChange,
-  size = 'regular',
 }: {
   options: { value: T; label: string }[];
   value: T;
   onChange: (value: T) => void;
-  /** large: 홈의 적금/예금 풍차 전환처럼 화면을 나누는 큰 전환 (높이 44) */
-  size?: 'regular' | 'large';
 }) {
   return (
     <SegmentedControl
       values={options.map((o) => o.label)}
       selectedIndex={Math.max(0, options.findIndex((o) => o.value === value))}
       onChange={(e) => onChange(options[e.nativeEvent.selectedSegmentIndex].value)}
-      style={[styles.segmented, size === 'large' && styles.segmentedLarge]}
+      style={styles.segmented}
     />
   );
 }
@@ -61,14 +60,12 @@ export function Chip({ label, selected, onPress }: { label: string; selected: bo
 }
 
 const styles = StyleSheet.create({
+  // 컨트롤 높이는 50으로 통일한다 (세그먼트·버튼).
   segmented: {
-    height: 36,
-  },
-  segmentedLarge: {
-    height: 44,
+    height: CONTROL_HEIGHT,
   },
   button: {
-    height: 52,
+    height: CONTROL_HEIGHT,
     borderRadius: radius.full,
     backgroundColor: colors.primary,
     alignItems: 'center',

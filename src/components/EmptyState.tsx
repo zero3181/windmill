@@ -15,7 +15,7 @@ export function EmptyState() {
         <Windmill blades={12} filled={[]} width={200} />
       </View>
       <Text style={styles.title}>나만의 풍차를 만들어 보세요</Text>
-      <Text style={styles.desc}>날개 수와 금액만 정하면{'\n'}매달 무엇을 가입하면 되는지 알려드려요.</Text>
+      <Text style={styles.desc}>날개 수와 금액만 정하면 할 일을 알려드려요.</Text>
       <View style={styles.actions}>
         <PrimaryButton label="풍차 만들기" onPress={() => router.push('/create-windmill')} />
         <PrimaryButton label="이미 가입한 계좌가 있어요" variant="plain" onPress={() => router.push('/add-account')} />

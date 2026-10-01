@@ -2,7 +2,7 @@ import { SymbolView, type SFSymbol } from 'expo-symbols';
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Checklist, ChecklistStep } from '../lib/checklist';
-import { formatDateShort, formatManwon, formatMonth } from '../lib/format';
+import { formatManwon, formatMonth } from '../lib/format';
 import { colors, radius, spacing } from '../theme';
 import type { AccountType } from '../types/account';
 import { Chevron } from './ui/Grouped';
@@ -37,7 +37,6 @@ export function WindmillChecklist({
   const { steps, perAccount, termMonths, doneCount, complete } = checklist;
   const [showDone, setShowDone] = useState(false);
   const unit = UNIT[type];
-  const amountLabel = `${type === 'savings' ? '월 ' : ''}${formatManwon(perAccount)}`;
 
   const done = steps.filter((s) => s.status === 'done');
   const pending = steps.filter((s) => s.status !== 'done');
@@ -52,30 +51,28 @@ export function WindmillChecklist({
           {doneCount}/{steps.length}
         </Text>
       </View>
+      {/* 모든 단계에 같은 조건이라 한 번만 보여 준다. */}
+      <Text style={styles.summary}>
+        {termMonths}개월 {unit} · {type === 'savings' ? '월 ' : ''}
+        {formatManwon(perAccount)}
+      </Text>
 
       <View style={styles.card}>
         {collapseDone ? (
           <Pressable style={styles.row} onPress={() => setShowDone(true)}>
             <StepIcon name="checkmark.circle.fill" color={colors.success} />
-            <View style={styles.rowMain}>
-              <Text style={styles.doneTitle}>
-                {done.length === 1 ? '1번째' : `1~${done.length}번째`} {unit} 가입 완료
-              </Text>
-            </View>
+            <Text style={[styles.doneTitle, styles.rowMain]}>
+              1~{done.length}번째 {unit} 가입 완료
+            </Text>
             <Chevron direction="down" />
           </Pressable>
         ) : (
           done.map((step) => (
             <Pressable key={step.index} style={styles.row} onPress={() => step.account && onOpenAccount(step.account.id)}>
               <StepIcon name="checkmark.circle.fill" color={colors.success} />
-              <View style={styles.rowMain}>
-                <Text style={styles.doneTitle}>
-                  {step.index + 1}번째 {unit} 가입 완료
-                </Text>
-                <Text style={styles.subtitle}>
-                  {formatMonth(step.month, today)} 가입{step.account?.bank ? ` · ${step.account.bank}` : ''}
-                </Text>
-              </View>
+              <Text style={[styles.doneTitle, styles.rowMain]}>
+                {step.index + 1}번째 {unit} 가입 완료
+              </Text>
               <Chevron />
             </Pressable>
           ))
@@ -83,11 +80,6 @@ export function WindmillChecklist({
 
         {pending.map((step) => {
           const month = formatMonth(step.month, today);
-          // 적금은 계좌가 늘수록 매달 넣는 돈도 늘어나니, 그 달부터의 총액을 한 줄 더 알려 준다.
-          const outlay =
-            type === 'savings' && step.index > 0
-              ? `\n가입하면 매달 총 ${formatManwon(step.monthlyOutlay)}을 넣게 돼요`
-              : '';
 
           if (step.status === 'now') {
             return (
@@ -96,10 +88,6 @@ export function WindmillChecklist({
                 <View style={styles.rowMain}>
                   <Text style={styles.nowTitle}>
                     {step.index + 1}번째 {unit}을 가입하세요
-                  </Text>
-                  <Text style={styles.subtitle}>
-                    {termMonths}개월 {unit} · {amountLabel}
-                    {outlay}
                   </Text>
                   <View style={styles.actions}>
                     <Pressable style={styles.joinButton} onPress={() => onJoin(step)}>
@@ -116,34 +104,26 @@ export function WindmillChecklist({
 
           if (step.status === 'scheduled') {
             return (
-              <View key={step.index} style={styles.row}>
+              <View key={step.index} style={[styles.row, styles.rowCentered]}>
                 <StepNumber n={step.index + 1} />
-                <View style={styles.rowMain}>
-                  <Text style={styles.scheduledTitle}>
-                    {month}에 {step.index + 1}번째 {unit}을 가입하세요
-                  </Text>
-                  <Text style={styles.subtitle}>
-                    {termMonths}개월 {unit} · {amountLabel}
-                    {outlay}
-                  </Text>
-                  <Text style={styles.note}>이번 달에 또 가입하면 만기가 같은 달에 겹쳐요.</Text>
-                  <Pressable
-                    style={[styles.reminder, reminderOn && styles.reminderOn]}
-                    onPress={onToggleReminder}
-                    accessibilityRole="switch"
-                    accessibilityState={{ checked: reminderOn }}
-                  >
-                    <SymbolView
-                      name={reminderOn ? 'bell.fill' : 'bell'}
-                      size={15}
-                      tintColor={reminderOn ? '#FFFFFF' : colors.primary}
-                      fallback={null}
-                    />
-                    <Text style={[styles.reminderText, reminderOn && styles.reminderTextOn]}>
-                      {reminderOn ? `${formatDateShort(step.month)}에 알려드릴게요` : `${formatDateShort(step.month)}에 알림 받기`}
-                    </Text>
-                  </Pressable>
-                </View>
+                <Text style={[styles.scheduledTitle, styles.rowMain]}>
+                  {month}에 {step.index + 1}번째 {unit}을 가입하세요
+                </Text>
+                <Pressable
+                  style={[styles.bell, reminderOn && styles.bellOn]}
+                  onPress={onToggleReminder}
+                  hitSlop={8}
+                  accessibilityRole="switch"
+                  accessibilityLabel={`${month} 가입 알림`}
+                  accessibilityState={{ checked: reminderOn }}
+                >
+                  <SymbolView
+                    name={reminderOn ? 'bell.fill' : 'bell'}
+                    size={17}
+                    tintColor={reminderOn ? '#FFFFFF' : colors.primary}
+                    fallback={<Text style={styles.bellFallback}>🔔</Text>}
+                  />
+                </Pressable>
               </View>
             );
           }
@@ -151,22 +131,14 @@ export function WindmillChecklist({
           return (
             <View key={step.index} style={[styles.row, styles.rowLocked]}>
               <StepNumber n={step.index + 1} />
-              <View style={styles.rowMain}>
-                <Text style={styles.lockedTitle}>
-                  {step.index + 1}번째 {unit} 가입
-                </Text>
-              </View>
+              <Text style={[styles.lockedTitle, styles.rowMain]}>
+                {step.index + 1}번째 {unit} 가입
+              </Text>
               <Text style={styles.lockedMonth}>{month}</Text>
             </View>
           );
         })}
       </View>
-
-      <Text style={styles.footer}>
-        {complete
-          ? `이제 매달 만기가 돌아와요. 만기가 된 ${unit}은 그달에 다시 가입하면 풍차가 계속 돌아요.`
-          : `매달 하나씩 가입하면 ${steps.length}개월 뒤 풍차가 완성돼요.`}
-      </Text>
     </View>
   );
 }
@@ -224,6 +196,29 @@ const styles = StyleSheet.create({
   },
   rowNow: {
     backgroundColor: colors.primarySoft,
+  },
+  rowCentered: {
+    alignItems: 'center',
+  },
+  summary: {
+    fontSize: 15,
+    color: colors.textMuted,
+    paddingHorizontal: spacing.lg,
+    marginBottom: 2,
+  },
+  bell: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primarySoft,
+  },
+  bellOn: {
+    backgroundColor: colors.primary,
+  },
+  bellFallback: {
+    fontSize: 15,
   },
   rowLocked: {
     alignItems: 'center',
@@ -287,15 +282,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: colors.textFaint,
   },
-  subtitle: {
-    fontSize: 15,
-    color: colors.textMuted,
-  },
-  note: {
-    fontSize: 13,
-    color: colors.textFaint,
-    marginTop: 2,
-  },
   actions: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -319,33 +305,5 @@ const styles = StyleSheet.create({
   linkText: {
     fontSize: 15,
     color: colors.primary,
-  },
-  reminder: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    gap: 6,
-    marginTop: spacing.sm,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 7,
-    borderRadius: radius.full,
-    backgroundColor: colors.primarySoft,
-  },
-  reminderOn: {
-    backgroundColor: colors.primary,
-  },
-  reminderText: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: colors.primary,
-  },
-  reminderTextOn: {
-    color: '#FFFFFF',
-  },
-  footer: {
-    fontSize: 13,
-    color: colors.textMuted,
-    paddingHorizontal: spacing.lg,
-    lineHeight: 18,
   },
 });

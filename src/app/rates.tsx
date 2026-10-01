@@ -160,7 +160,7 @@ export default function RatesScreen() {
           {others.length > 0 && (
             <GroupedSection
               title={planned.length > 0 ? '그 외' : undefined}
-              footer="가입 대상 문구로 판단한 결과예요. 1인 1계좌 등 세부 조건은 가입 전에 확인하세요. 같은 금융회사는 기본 금리가 가장 높은 상품 하나만 보여줘요."
+              footer="가입 조건은 가입 전에 은행에서 확인해 주세요."
             >
               {others.map((p, i) => renderRow(p, planned.length + i))}
             </GroupedSection>

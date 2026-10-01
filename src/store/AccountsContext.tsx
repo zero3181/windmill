@@ -29,7 +29,8 @@ interface AccountsContextValue {
   addAccount: (input: NewAccountInput) => Promise<void>;
   editAccount: (id: string, input: NewAccountInput) => Promise<void>;
   removeAccount: (id: string) => Promise<void>;
-  closeAccount: (id: string) => Promise<void>;
+  /** 계좌를 끝낸다: 만기 전에 닫으면 'closed'(중도 해지), 만기에 닫으면 'matured'(만기 해지) */
+  closeAccount: (id: string, status?: 'closed' | 'matured') => Promise<void>;
   updateSettings: (patch: Partial<AppSettings>) => Promise<void>;
   restoreFromBackup: (accounts: Account[], settings: Record<string, string>) => Promise<void>;
   refresh: () => Promise<void>;
@@ -109,10 +110,10 @@ export function AccountsProvider({ children }: { children: React.ReactNode }) {
   );
 
   const closeAccount = useCallback(
-    async (id: string) => {
+    async (id: string, status: 'closed' | 'matured' = 'closed') => {
       const existing = accounts.find((a) => a.id === id);
       if (!existing) return;
-      await dbUpdateAccount(db, { ...existing, status: 'closed', updatedAt: new Date().toISOString() });
+      await dbUpdateAccount(db, { ...existing, status, updatedAt: new Date().toISOString() });
       await refresh();
     },
     [db, accounts, refresh]

@@ -15,6 +15,13 @@ import type { AccountType } from '../types/account';
 import { FormScrollView } from '../components/ui/FormScrollView';
 
 const UNIT: Record<AccountType, string> = { savings: '적금', deposit: '예금' };
+/** 처음 만들 때 채워 둘 금액: 적금은 매달 60만 원, 예금은 6천만 원 */
+const DEFAULT_TOTAL: Record<AccountType, number> = { savings: 600_000, deposit: 60_000_000 };
+
+/** 12개월은 '1년'처럼 읽기 쉽게 */
+function termLabel(months: number): string {
+  return months % 12 === 0 ? `${months / 12}년` : `${months}개월`;
+}
 
 function parseAmount(text: string): number {
   return Number(text.replace(/[^0-9]/g, '')) || 0;
@@ -30,7 +37,14 @@ export default function CreateWindmillScreen() {
   const editing = params.type ? settings.goals[params.type] : undefined;
   const [type, setType] = useState<AccountType>(params.type ?? 'savings');
   const [blades, setBlades] = useState<WindmillSize>(editing?.blades ?? 12);
-  const [total, setTotal] = useState(editing?.total ?? 0);
+  const [total, setTotal] = useState(editing?.total ?? DEFAULT_TOTAL[type]);
+  const [totalTouched, setTotalTouched] = useState(Boolean(editing));
+
+  function handleTypeChange(next: AccountType) {
+    setType(next);
+    // 금액을 아직 고치지 않았으면 종류에 맞는 초기 금액으로 바꾼다.
+    if (!totalTouched) setTotal(DEFAULT_TOTAL[next]);
+  }
 
   const perAccount = Math.floor(total / blades);
   // 날개 수와 기간이 다른 계좌는 풍차에 들어가지 않는다는 것을 미리 알려 준다.
@@ -39,12 +53,10 @@ export default function CreateWindmillScreen() {
 
   const amountFooter =
     perAccount <= 0
-      ? type === 'savings'
-        ? '풍차가 다 돌았을 때 매달 저금하게 될 금액이에요.'
-        : '풍차에 넣을 목돈 전체예요.'
+      ? undefined
       : type === 'savings'
-        ? `적금 ${blades}개에 ${formatManwon(perAccount)}씩 나눠 넣어요. 첫 달은 ${formatManwon(perAccount)}으로 시작해 한 달에 하나씩 늘어, ${blades}개월째부터 매달 ${formatManwon(perAccount * blades)}이 돼요.`
-        : `예금 ${blades}개에 ${formatManwon(perAccount)}씩 나눠, 매달 하나씩 넣어요.`;
+        ? `계좌 하나에 월 ${formatManwon(perAccount)} · ${blades}개월째부터 매달 ${formatManwon(perAccount * blades)}`
+        : `계좌 하나에 ${formatManwon(perAccount)}`;
 
   async function handleSave() {
     if (perAccount <= 0) {
@@ -91,50 +103,43 @@ export default function CreateWindmillScreen() {
         </View>
 
         {!editing && (
-          <GroupedSection
-            title="어떤 풍차를 만들까요?"
-            footer={
-              type === 'savings'
-                ? '적금 풍차: 월급에서 매달 조금씩 모을 때 좋아요.'
-                : '예금 풍차: 모아둔 목돈을 나눠 넣고, 필요할 때 일부만 꺼내 쓸 수 있어요.'
-            }
-          >
-            <View style={styles.segmentRow}>
-              <Segmented
-                options={[
-                  { value: 'savings', label: '적금 풍차' },
-                  { value: 'deposit', label: '예금 풍차' },
-                ]}
-                value={type}
-                onChange={setType}
-              />
-            </View>
+          <GroupedSection title="어떤 풍차를 만들까요?" bare>
+            <Segmented
+              options={[
+                { value: 'savings', label: '적금 풍차' },
+                { value: 'deposit', label: '예금 풍차' },
+              ]}
+              value={type}
+              onChange={handleTypeChange}
+            />
           </GroupedSection>
         )}
 
         <GroupedSection
           title="날개 수"
+          bare
           footer={
-            `매달 ${unit}을 하나씩 ${blades}번 가입해요. ${unit} 하나의 기간은 ${blades}개월이라, 풍차가 다 돌면 매달 만기가 돌아와요.` +
-            (outsideCount > 0 ? ` 지금 있는 ${unit} 중 ${outsideCount}개는 기간이 ${blades}개월이 아니라 날개를 채우지 않아요.` : '')
+            `매달 ${termLabel(blades)} 만기 ${unit}을 ${blades}번 가입해요.` +
+            (outsideCount > 0 ? ` ${termLabel(blades)}이 아닌 ${unit} ${outsideCount}개는 날개를 채우지 않아요.` : '')
           }
         >
-          <View style={styles.segmentRow}>
-            <Segmented
-              options={WINDMILL_SIZES.map((s) => ({ value: String(s), label: `${s}개` }))}
-              value={String(blades)}
-              onChange={(v) => setBlades(Number(v) as WindmillSize)}
-            />
-          </View>
+          <Segmented
+            options={WINDMILL_SIZES.map((s) => ({ value: String(s), label: `${s}개` }))}
+            value={String(blades)}
+            onChange={(v) => setBlades(Number(v) as WindmillSize)}
+          />
         </GroupedSection>
 
         <GroupedSection title="금액" footer={amountFooter}>
           <InputRow
             title={type === 'savings' ? '매달 저금할 금액' : '총 저금액'}
             value={total > 0 ? total.toLocaleString('ko-KR') : ''}
-            onChangeText={(t) => setTotal(parseAmount(t))}
+            onChangeText={(t) => {
+              setTotal(parseAmount(t));
+              setTotalTouched(true);
+            }}
             keyboardType="number-pad"
-            placeholder={type === 'savings' ? '1,200,000' : '12,000,000'}
+            placeholder={DEFAULT_TOTAL[type].toLocaleString('ko-KR')}
             suffix="원"
           />
         </GroupedSection>
@@ -158,8 +163,5 @@ const styles = StyleSheet.create({
   },
   art: {
     alignItems: 'center',
-  },
-  segmentRow: {
-    padding: spacing.md,
   },
 });

@@ -20,7 +20,7 @@ export default function ArchiveScreen() {
 
   return (
     <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.content}>
-      <GroupedSection footer="만기 처리하거나 해지한 계좌예요. 누르면 기록을 볼 수 있어요.">
+      <GroupedSection>
         {ended.length === 0 && <ListRow title="종료된 계좌가 없어요" />}
         {ended.map((item) => (
           <AccountListItem key={item.account.id} item={item} />

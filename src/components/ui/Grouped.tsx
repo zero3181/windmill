@@ -7,24 +7,31 @@ import { colors, radius, spacing } from '../../theme';
 export function GroupedSection({
   title,
   footer,
+  bare = false,
   children,
 }: {
   title?: string;
   footer?: string;
+  /** 세그먼트 컨트롤 하나처럼 스스로 모양을 가진 내용은 흰 카드로 감싸지 않는다. */
+  bare?: boolean;
   children: React.ReactNode;
 }) {
   const rows = React.Children.toArray(children).filter(Boolean);
   return (
     <View style={styles.section}>
       {title && <Text style={styles.sectionTitle}>{title}</Text>}
-      <View style={styles.card}>
-        {rows.map((row, i) => (
-          <React.Fragment key={i}>
-            {i > 0 && <View style={styles.separator} />}
-            {row}
-          </React.Fragment>
-        ))}
-      </View>
+      {bare ? (
+        children
+      ) : (
+        <View style={styles.card}>
+          {rows.map((row, i) => (
+            <React.Fragment key={i}>
+              {i > 0 && <View style={styles.separator} />}
+              {row}
+            </React.Fragment>
+          ))}
+        </View>
+      )}
       {footer && <Text style={styles.footer}>{footer}</Text>}
     </View>
   );

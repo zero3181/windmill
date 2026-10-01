@@ -11,7 +11,6 @@ import {
 } from '../../lib/calc';
 import { formatDateFull, formatDday, formatPercent, formatWon } from '../../lib/format';
 import { useAccounts } from '../../store/AccountsContext';
-import { useWindmillType } from '../../store/WindmillTypeContext';
 import { colors, radius, spacing } from '../../theme';
 import { TAX_TYPE_LABELS } from '../../types/account';
 
@@ -19,7 +18,6 @@ export default function AccountDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { accounts, removeAccount, closeAccount } = useAccounts();
-  const { setType } = useWindmillType();
   const [busy, setBusy] = useState(false);
   const today = todayKST();
 
@@ -63,31 +61,18 @@ export default function AccountDetailScreen() {
     ]);
   }
 
-  function handleCompareRenew() {
-    confirm('만기 처리', '이 계좌를 만기 처리하고, 지금 금리가 높은 상품을 볼까요?', '금리 비교', async () => {
-      await closeAccount(account!.id);
-      setType(account!.type);
+  function handleEarlyClose() {
+    confirm('중도 해지', '만기 전에 해지했나요? 종료된 계좌로 옮겨져요.', '중도 해지', async () => {
+      await closeAccount(account!.id, 'closed');
       router.back();
-      router.navigate({ pathname: '/rates', params: { term: String(account!.termMonths) } });
     });
   }
 
-  function handleSameRenew() {
-    const prefill = {
-      name: account!.name,
-      bank: account!.bank,
-      type: account!.type,
-      amount: account!.amount,
-      rate: account!.rate,
-      taxType: account!.taxType,
-      termMonths: account!.termMonths,
-      payDay: account!.payDay,
-    };
-    router.push({ pathname: '/add-account', params: { prefill: JSON.stringify(prefill) } });
-  }
-
-  function handleClose() {
-    confirm('해지 처리', '해지 처리할까요? 종료된 계좌로 옮겨져요.', '해지 처리', () => closeAccount(account!.id));
+  function handleMaturedClose() {
+    confirm('만기 해지', '만기가 되어 해지했나요? 종료된 계좌로 옮겨져요.', '만기 해지', async () => {
+      await closeAccount(account!.id, 'matured');
+      router.back();
+    });
   }
 
   function handleDelete() {
@@ -120,7 +105,7 @@ export default function AccountDetailScreen() {
           <View style={styles.badgeRow}>
             <View style={[styles.badge, !isActive ? styles.badgeEnded : soon ? styles.badgeSoon : styles.badgeNormal]}>
               <Text style={[styles.badgeText, !isActive ? styles.badgeTextEnded : soon ? styles.badgeTextSoon : null]}>
-                {account.status === 'closed' ? '해지' : account.status === 'matured' ? '만기' : formatDday(financials.daysToMaturity)}
+                {account.status === 'closed' ? '중도 해지' : account.status === 'matured' ? '만기 해지' : formatDday(financials.daysToMaturity)}
               </Text>
             </View>
             <Text style={styles.heroDate}>{formatDateFull(financials.maturityDate)} 만기</Text>
@@ -160,10 +145,9 @@ export default function AccountDetailScreen() {
         ) : null}
 
         {isActive && (
-          <GroupedSection title="만기 처리">
-            <ListRow title="금리 비교하고 다시 가입" tint="primary" onPress={busy ? undefined : handleCompareRenew} />
-            <ListRow title="같은 조건으로 다시 가입" tint="primary" onPress={busy ? undefined : handleSameRenew} />
-            <ListRow title="해지 처리" tint="primary" onPress={busy ? undefined : handleClose} />
+          <GroupedSection title="해지">
+            <ListRow title="중도 해지" tint="primary" onPress={busy ? undefined : handleEarlyClose} />
+            <ListRow title="만기 해지" tint="primary" onPress={busy ? undefined : handleMaturedClose} />
           </GroupedSection>
         )}
 

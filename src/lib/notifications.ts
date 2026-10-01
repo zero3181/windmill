@@ -71,7 +71,7 @@ export async function rescheduleAllNotifications(
     await Notifications.scheduleNotificationAsync({
       content: {
         title: `${next.index + 1}번째 ${unit}을 가입할 차례예요`,
-        body: `이번 달에 ${unit}을 하나 가입하고 풍차 날개를 채워 보세요.`,
+        body: `이번 달에 ${unit}을 가입하면 날개 하나가 채워져요.`,
       },
       trigger: {
         type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -88,7 +88,7 @@ export async function rescheduleAllNotifications(
         await Notifications.scheduleNotificationAsync({
           content: {
             title: `${account.name} 만기가 7일 남았어요`,
-            body: '만기가 되면 다시 가입할지 해지할지 정해 주세요.',
+            body: '해지하면 앱에서 만기 해지를 눌러 주세요.',
           },
           trigger: {
             type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -104,7 +104,7 @@ export async function rescheduleAllNotifications(
         await Notifications.scheduleNotificationAsync({
           content: {
             title: `오늘 ${account.name} 만기예요`,
-            body: '다시 가입할지 해지할지 정해 주세요.',
+            body: '해지하면 앱에서 만기 해지를 눌러 주세요.',
           },
           trigger: {
             type: Notifications.SchedulableTriggerInputTypes.DATE,

@@ -197,22 +197,3 @@ export function selectWindmill(
     totalPrincipal: rows.reduce((sum, r) => sum + r.financials.currentPrincipal, 0),
   };
 }
-
-export interface Upcoming {
-  items: AccountWithFinancials[];
-  /** 기간 안에 만기가 없어 가장 가까운 만기 하나만 보여주는 경우 */
-  nextOnly: boolean;
-}
-
-/**
- * 풍차에서 챙겨야 할 만기: 해당 종류의 진행 중 계좌 중 withinDays일 안에 만기되는 계좌
- * (만기가 지났는데 아직 처리하지 않은 계좌 포함). 없으면 가장 가까운 만기 하나.
- */
-export function selectUpcoming(items: AccountWithFinancials[], type: Account['type'], withinDays = 30): Upcoming {
-  const active = items
-    .filter((i) => i.account.status === 'active' && i.account.type === type)
-    .sort((a, b) => a.financials.daysToMaturity - b.financials.daysToMaturity);
-  const soon = active.filter((i) => i.financials.daysToMaturity <= withinDays);
-  if (soon.length > 0) return { items: soon, nextOnly: false };
-  return { items: active.slice(0, 1), nextOnly: active.length > 0 };
-}

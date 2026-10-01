@@ -3,7 +3,7 @@ import React, { useMemo, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { computeMaturityDate, parseISODate, todayKST } from '../lib/calc';
 import { colors, radius, spacing } from '../theme';
-import { TAX_TYPE_LABELS, type Account, type AccountType, type NewAccountInput, type TaxType } from '../types/account';
+import { type Account, type AccountType, type NewAccountInput, type TaxType } from '../types/account';
 import { Segmented } from './ui/Controls';
 import { DateRow, InputRow } from './ui/FormRows';
 import { Chevron, GroupedSection, ListRow } from './ui/Grouped';
@@ -197,7 +197,7 @@ export function AccountForm({
         <GroupedSection
           footer={
             outsideWindmill
-              ? `${UNIT[type]} 풍차는 ${windmillTerm}개월 ${UNIT[type]}으로 돌아가요. ${termMonths}개월 ${UNIT[type]}은 풍차 날개를 채우지 않고 목록에만 기록돼요.`
+              ? `${windmillTerm}개월 ${UNIT[type]}이 아니라 풍차 날개를 채우지 않아요.`
               : undefined
           }
         >
@@ -257,7 +257,7 @@ export function AccountForm({
 
         {showDetails && (
           <>
-            <GroupedSection footer="금리를 넣으면 만기 때 받을 이자를 계산해 드려요.">
+            <GroupedSection>
               <InputRow title="별칭" value={name} onChangeText={setName} placeholder={defaultName(type, startDate)} />
               <InputRow title="금리 (연)" value={rateText} onChangeText={setRateText} keyboardType="decimal-pad" placeholder="3.50" suffix="%" />
               <View style={styles.taxRow}>
@@ -272,11 +272,7 @@ export function AccountForm({
               </View>
             </GroupedSection>
 
-            <GroupedSection
-              footer={
-                maturityOverride !== null ? undefined : '만기일은 가입일과 기간으로 자동 계산돼요. 직접 바꿀 수도 있어요.'
-              }
-            >
+            <GroupedSection>
               {type === 'savings' && (
                 <InputRow title="월 납입일" value={payDayText} onChangeText={setPayDayText} keyboardType="number-pad" placeholder="1~31" suffix="일" />
               )}
@@ -292,7 +288,6 @@ export function AccountForm({
               <InputRow title="메모" value={memo} onChangeText={setMemo} placeholder="선택" />
             </GroupedSection>
 
-            <Text style={styles.taxNote}>{TAX_TYPE_LABELS[taxType]} 기준으로 이자를 계산해요.</Text>
           </>
         )}
       </FormScrollView>
@@ -351,10 +346,5 @@ const styles = StyleSheet.create({
   detailsToggleText: {
     fontSize: 15,
     color: colors.primary,
-  },
-  taxNote: {
-    fontSize: 12,
-    color: colors.textFaint,
-    textAlign: 'center',
   },
 });
