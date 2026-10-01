@@ -23,7 +23,7 @@ interface Props {
   size: WindmillSize;
   /** 없으면 날개 수 토글을 숨긴다 (풍차 목표가 있으면 날개 수는 풍차 수정에서 바꾼다) */
   onSizeChange?: (size: WindmillSize) => void;
-  /** 예시 데이터일 때 '예시' 배지를 붙이고 막대를 눌러도 이동하지 않는다. */
+  /** 샘플 데이터일 때: 막대를 눌러도 이동하지 않는다 (표시는 SamplePreview가 한다). */
   sample?: boolean;
   emptyLabel: string;
 }
@@ -40,11 +40,6 @@ export function WindmillCard({ windmill, type, size, onSizeChange, sample = fals
             <Text style={styles.amountLabel}>원금</Text>
             <Text style={styles.amount}>{formatWon(windmill.totalPrincipal)}</Text>
           </View>
-          {sample && (
-            <View style={styles.sampleBadge}>
-              <Text style={styles.sampleBadgeText}>예시</Text>
-            </View>
-          )}
         </View>
         {onSizeChange && (
           <View style={styles.sizeToggle}>
@@ -103,8 +98,8 @@ function GanttChart({
           <View style={{ width: contentWidth }}>
             <View style={styles.axis}>
               {months.map(({ y, m }, i) =>
-                // 분기 첫 달마다 라벨을 달되, 차트 첫 달 라벨과 겹치지 않게 바로 다음 달은 건너뛴다.
-                i === 0 || ((m - 1) % 3 === 0 && i >= 2) ? (
+                // 분기 첫 달마다 라벨을 달되, 차트 첫 달 라벨과 겹치지 않게 두 달 안쪽은 건너뛴다.
+                i === 0 || ((m - 1) % 3 === 0 && i >= 3) ? (
                   <Pressable
                     key={`${y}-${m}`}
                     style={[styles.axisLabel, { left: i * monthWidth }]}
@@ -207,17 +202,6 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: '700',
     color: colors.text,
-  },
-  sampleBadge: {
-    backgroundColor: colors.primarySoft,
-    borderRadius: 6,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-  },
-  sampleBadgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.primary,
   },
   amountRow: {
     flexDirection: 'row',

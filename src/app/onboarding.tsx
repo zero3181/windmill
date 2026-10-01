@@ -26,8 +26,9 @@ export default function OnboardingScreen() {
   // 소개가 끝나면(건너뛰어도) 바로 풍차 만들기로 간다. 이미 풍차가 있으면 홈으로 돌아간다.
   async function finish() {
     await updateSettings({ onboardingDone: true });
-    router.back();
-    if (!settings.goals.savings && !settings.goals.deposit) router.push('/create-windmill');
+    // 소개를 닫는 애니메이션 중에 새 화면을 열면 무시되어서, 소개 자리를 풍차 만들기로 바로 바꾼다.
+    if (!settings.goals.savings && !settings.goals.deposit) router.replace('/create-windmill');
+    else router.back();
   }
 
   function goNext() {

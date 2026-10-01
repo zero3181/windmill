@@ -1,27 +1,9 @@
-import type { Account, AccountType, TaxType } from '../types/account';
+import type { Account } from '../types/account';
 import { addMonthsClamped, computeMaturityDate, todayKST } from './calc';
 
-interface SampleSpec {
-  /** 오늘로부터 몇 개월 뒤에 만기가 오는지 */
-  offsetMonths: number;
-  bank: string;
-  type: AccountType;
-  amount: number;
-  rate: number;
-  taxType: TaxType;
-  termMonths: number;
-}
-
-const SPECS: SampleSpec[] = [
-  { offsetMonths: 0, bank: '카카오뱅크', type: 'savings', amount: 300_000, rate: 4.2, taxType: 'preferential', termMonths: 12 },
-  { offsetMonths: 1, bank: 'OK저축은행', type: 'deposit', amount: 3_000_000, rate: 3.6, taxType: 'general', termMonths: 12 },
-  { offsetMonths: 2, bank: '웰컴저축은행', type: 'deposit', amount: 2_000_000, rate: 3.4, taxType: 'general', termMonths: 12 },
-  { offsetMonths: 4, bank: '케이뱅크', type: 'savings', amount: 250_000, rate: 3.9, taxType: 'general', termMonths: 12 },
-  { offsetMonths: 5, bank: '신한저축은행', type: 'deposit', amount: 4_000_000, rate: 3.5, taxType: 'exempt', termMonths: 12 },
-  { offsetMonths: 7, bank: 'SBI저축은행', type: 'deposit', amount: 1_500_000, rate: 3.7, taxType: 'general', termMonths: 12 },
-  { offsetMonths: 9, bank: '하나은행', type: 'savings', amount: 400_000, rate: 4.0, taxType: 'preferential', termMonths: 12 },
-  { offsetMonths: 11, bank: '우리은행', type: 'deposit', amount: 3_500_000, rate: 3.3, taxType: 'general', termMonths: 12 },
-];
+/** 샘플 풍차: 매달 하나씩 가입한 1년 적금 12개라 날개가 모두 차서 돌아간다. */
+const SAMPLE_BANKS = ['토스뱅크', '카카오뱅크', 'KB국민은행', '신한은행', '하나은행', '우리은행', 'SBI저축은행', 'OK저축은행', '웰컴저축은행', 'NH농협은행', '케이뱅크', 'IBK기업은행'];
+const SAMPLE_RATES = [4.2, 4.1, 4.0, 3.9, 4.2, 3.8, 4.0, 4.1, 3.9, 4.0, 3.8, 4.2];
 
 /**
  * 계좌가 하나도 없을 때 홈 화면 미리보기용 예시 데이터.
@@ -30,20 +12,20 @@ const SPECS: SampleSpec[] = [
  */
 export function buildSampleAccounts(today: string = todayKST()): Account[] {
   const now = new Date().toISOString();
-  return SPECS.map((spec, idx) => {
-    const startDate = addMonthsClamped(today, spec.offsetMonths - spec.termMonths);
-    const maturityDate = computeMaturityDate(startDate, spec.termMonths);
+  return SAMPLE_BANKS.map((bank, idx) => {
+    // 11개월 전부터 이번 달까지 매달 하나씩 가입: 만기가 다음 달부터 매달 돌아온다.
+    const startDate = addMonthsClamped(today, idx - 11);
     return {
       id: `sample-${idx}`,
       name: `${idx + 1}회차`,
-      bank: spec.bank,
-      type: spec.type,
-      amount: spec.amount,
-      rate: spec.rate,
-      taxType: spec.taxType,
+      bank,
+      type: 'savings',
+      amount: 100_000,
+      rate: SAMPLE_RATES[idx],
+      taxType: 'general',
       startDate,
-      termMonths: spec.termMonths,
-      maturityDate,
+      termMonths: 12,
+      maturityDate: computeMaturityDate(startDate, 12),
       status: 'active',
       createdAt: now,
       updatedAt: now,

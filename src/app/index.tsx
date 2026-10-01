@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AccountListItem } from '../components/AccountListItem';
 import { EmptyState } from '../components/EmptyState';
+import { SamplePreview } from '../components/SamplePreview';
 import { PrimaryButton, Segmented } from '../components/ui/Controls';
 import { Card, GroupedSection, ListRow } from '../components/ui/Grouped';
 import { WindmillCard } from '../components/WindmillCard';
@@ -117,7 +118,10 @@ export default function HomeScreen() {
 
       <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.content}>
         {typesInUse.length === 0 ? (
-          <EmptyState />
+          <>
+            <EmptyState />
+            <SamplePreview />
+          </>
         ) : (
           <>
             <WindmillHero blades={blades} filled={windmill.filledBlades} type={type} />
