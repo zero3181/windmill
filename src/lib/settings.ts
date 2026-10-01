@@ -24,6 +24,8 @@ export interface AppSettings {
   goals: Partial<Record<AccountType, WindmillGoal>>;
   /** 할 일의 다음 가입 알림 날짜 (YYYY-MM-DD, 그날 오전 9시). 적금 풍차 / 예금 풍차 각각, 없으면 알림 없음 */
   stepReminder: Partial<Record<AccountType, string>>;
+  /** 앱을 열 때 Face ID(생체 인증)로 잠그기 */
+  appLock: boolean;
 }
 
 export const DEFAULT_SETTINGS: AppSettings = {
@@ -36,6 +38,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   windmillSize: { savings: 12, deposit: 12 },
   goals: {},
   stepReminder: {},
+  appLock: false,
 };
 
 export function goalSettingKey(type: AccountType): string {
@@ -84,6 +87,7 @@ export function parseSettings(raw: Record<string, string>): AppSettings {
       savings: parseDate(raw['stepReminder.savings']),
       deposit: parseDate(raw['stepReminder.deposit']),
     },
+    appLock: raw.appLock === '1',
   };
 }
 

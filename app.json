@@ -34,6 +34,12 @@
       "expo-router",
       "expo-notifications",
       "@react-native-community/datetimepicker",
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "앱을 잠그고 풀 때 Face ID를 사용해요."
+        }
+      ],
       "./plugins/withSceneLifecycle"
     ],
     "experiments": {

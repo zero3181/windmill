@@ -142,6 +142,7 @@ export function AccountsProvider({ children }: { children: React.ReactNode }) {
         setSetting(db, goalSettingKey('deposit'), serializeGoal(merged.goals.deposit)),
         setSetting(db, 'stepReminder.savings', merged.stepReminder.savings ?? ''),
         setSetting(db, 'stepReminder.deposit', merged.stepReminder.deposit ?? ''),
+        setSetting(db, 'appLock', boolToSetting(merged.appLock)),
       ]);
       await refresh();
     },

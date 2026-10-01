@@ -4,6 +4,7 @@ import { SQLiteProvider } from 'expo-sqlite';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { AppLockGate } from '../components/AppLock';
 import { DB_NAME, migrateDbIfNeeded } from '../lib/db';
 import { AccountsProvider } from '../store/AccountsContext';
 import { WindmillTypeProvider } from '../store/WindmillTypeContext';
@@ -46,6 +47,8 @@ export default function RootLayout() {
                       options={{ headerShown: false, presentation: 'fullScreenModal', gestureEnabled: false }}
                     />
                   </Stack>
+                  {/* 잠금을 켜 두면 모든 화면 위를 가린다 */}
+                  <AppLockGate />
                 </WindmillTypeProvider>
               </AccountsProvider>
             </SQLiteProvider>
