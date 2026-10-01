@@ -169,7 +169,9 @@ export function Windmill({ blades, filled, width, type = 'savings', showMonths =
               pointerEvents="none"
               style={[styles.monthLabel, { left: x * scale - MONTH_LABEL / 2, top: y * scale - MONTH_LABEL / 2 }]}
             >
-              <Text style={styles.monthText}>{bladeMonth(i, blades)}</Text>
+              <Text style={styles.monthText} maxFontSizeMultiplier={1.3}>
+                {bladeMonth(i, blades)}
+              </Text>
             </View>
           );
         })}

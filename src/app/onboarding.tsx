@@ -259,7 +259,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   primaryButton: {
-    height: 50,
+    minHeight: 50,
+    paddingVertical: spacing.sm,
     backgroundColor: colors.primary,
     borderRadius: radius.full,
     alignItems: 'center',

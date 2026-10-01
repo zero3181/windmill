@@ -101,7 +101,9 @@ const styles = StyleSheet.create({
     height: CONTROL_HEIGHT,
   },
   button: {
-    height: CONTROL_HEIGHT,
+    // 큰 글자에서는 버튼이 함께 커지도록 최소 높이만 정한다.
+    minHeight: CONTROL_HEIGHT,
+    paddingVertical: spacing.sm,
     borderRadius: radius.full,
     backgroundColor: colors.primary,
     alignItems: 'center',

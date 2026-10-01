@@ -107,7 +107,7 @@ function GanttChart({
                     disabled={!interactive}
                     onPress={() => router.push(`/month/${y}-${String(m).padStart(2, '0')}`)}
                   >
-                    <Text style={styles.axisText}>{i === 0 || m === 1 ? `'${String(y).slice(2)}.${m}` : `${m}월`}</Text>
+                    <Text style={styles.axisText} maxFontSizeMultiplier={1.3}>{i === 0 || m === 1 ? `'${String(y).slice(2)}.${m}` : `${m}월`}</Text>
                   </Pressable>
                 ) : null
               )}
@@ -123,6 +123,7 @@ function GanttChart({
                 const left = bar.start * monthWidth;
                 const width = Math.max(BAR_HEIGHT, (bar.end - bar.start) * monthWidth);
                 const elapsed = Math.min(Math.max(windmill.today - bar.start, 0), bar.end - bar.start) * monthWidth;
+                const sample = isSampleAccount(account.id);
                 return (
                   <Pressable
                     key={account.id}
@@ -136,7 +137,9 @@ function GanttChart({
                         backgroundColor: barColor(bar.bladeIndex, blades, type, 0.18),
                       },
                     ]}
-                    disabled={!interactive || isSampleAccount(account.id)}
+                    disabled={!interactive || sample}
+                    accessibilityRole={interactive && !sample ? 'button' : undefined}
+                    accessibilityLabel={barLabel(bar, windmill.today, type)}
                     onPress={() => router.push(`/account/${account.id}`)}
                   >
                     <View style={[styles.barElapsed, { width: elapsed, backgroundColor: barColor(bar.bladeIndex, blades, type) }]} />
@@ -151,6 +154,19 @@ function GanttChart({
       )}
     </View>
   );
+}
+
+/** VoiceOver용 막대 이름: "9월 적금, 가입 7개월째, 5개월 남음" */
+function barLabel(bar: Windmill['bars'][number], today: number, type: AccountType): string {
+  const { account } = bar.item;
+  const term = account.termMonths;
+  const unit = type === 'savings' ? '적금' : '예금';
+  const month = `${parseISODate(account.startDate).m}월 ${unit}`;
+  if (today < bar.start) return `${month}, 가입 전`;
+  if (today >= bar.end) return `${month}, 만기`;
+  const nth = Math.min(term, Math.floor(today - bar.start) + 1);
+  const left = Math.max(1, Math.ceil(bar.end - today));
+  return `${month}, 가입 ${nth}개월째, ${left}개월 남음`;
 }
 
 /** 막대 색: 채우는 날개와 같은 색. 풍차 주기와 기간이 다른 계좌(-1)는 회색. */

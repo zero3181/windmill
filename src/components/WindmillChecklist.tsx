@@ -196,7 +196,9 @@ function StepIcon({ name, color }: { name: SFSymbol; color: string }) {
 function StepNumber({ n, active = false }: { n: number; active?: boolean }) {
   return (
     <View style={[styles.number, active && styles.numberActive]}>
-      <Text style={[styles.numberText, active && styles.numberTextActive]}>{n}</Text>
+      <Text style={[styles.numberText, active && styles.numberTextActive]} maxFontSizeMultiplier={1.4}>
+        {n}
+      </Text>
     </View>
   );
 }
@@ -256,7 +258,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    height: 32,
+    minHeight: 32,
+    paddingVertical: 4,
     paddingHorizontal: spacing.md,
     borderRadius: radius.full,
     backgroundColor: colors.primarySoft,
@@ -293,9 +296,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   number: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    // 큰 글자에서도 숫자가 원 밖으로 넘치지 않게 최소 크기만 정한다.
+    minWidth: 26,
+    minHeight: 26,
+    paddingHorizontal: 4,
+    borderRadius: radius.full,
     borderWidth: 1.5,
     borderColor: colors.textFaint,
     alignItems: 'center',
