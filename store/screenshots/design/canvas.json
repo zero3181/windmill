@@ -1,0 +1,24 @@
+{
+  "v": 3,
+  "attachments": {},
+  "boards": {
+    "Main.dc.html": { "x": 0, "y": 0, "w": 440, "h": 956, "title": "1 · 나만의 풍차" },
+    "Shot2.dc.html": { "x": 520, "y": 0, "w": 440, "h": 956, "title": "2 · 이번 달 할 일" },
+    "Shot3.dc.html": { "x": 1040, "y": 0, "w": 440, "h": 956, "title": "3 · 예금 풍차" },
+    "Shot4.dc.html": { "x": 1560, "y": 0, "w": 440, "h": 956, "title": "4 · 풍차 만들기" },
+    "Shot5.dc.html": { "x": 2080, "y": 0, "w": 440, "h": 956, "title": "5 · 가입 안내" },
+    "Shot6.dc.html": { "x": 2600, "y": 0, "w": 440, "h": 956, "title": "6 · 다크 모드 · Face ID" }
+  },
+  "createdOnFiles": {
+    "at": "2026-10-01T15:25:02.237Z",
+    "v": 1
+  },
+  "designSystems": [],
+  "launch": { "view": "canvas" },
+  "notes": {
+    "heading": { "x": 0, "y": -300, "text": "풍차돌리기 App Store 스크린샷 · 6.9인치 (1/3 크기)", "kind": "title1", "maxW": 3040 }
+  },
+  "order": ["Main.dc.html", "Shot2.dc.html", "Shot3.dc.html", "Shot4.dc.html", "Shot5.dc.html", "Shot6.dc.html"],
+  "pages": [],
+  "title": "풍차돌리기 스크린샷 시안"
+}
