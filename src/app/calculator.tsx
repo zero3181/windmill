@@ -1,7 +1,6 @@
-import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { PrimaryButton, Segmented } from '../components/ui/Controls';
+import { Segmented } from '../components/ui/Controls';
 import { InputRow, PickerRow } from '../components/ui/FormRows';
 import { Card, GroupedSection, ListRow } from '../components/ui/Grouped';
 import { todayKST } from '../lib/calc';
@@ -40,7 +39,6 @@ function intervalLabel(months: number): string {
 }
 
 export default function PlanScreen() {
-  const router = useRouter();
   const { settings } = useAccounts();
   const { type, setType } = useWindmillType();
   const [termMonths, setTermMonths] = useState(12);
@@ -180,12 +178,6 @@ export default function PlanScreen() {
             <KV label={`${count}개 세후 이자 합계`} value={formatWon(plan.totalAfterTaxInterest)} />
           </Card>
 
-          <PrimaryButton
-            label={`추천 상품 ${count}개 보기`}
-            onPress={() =>
-              router.push({ pathname: '/rates', params: { term: String(termMonths), count: String(count) } })
-            }
-          />
 
           <GroupedSection
             title="가입 일정"

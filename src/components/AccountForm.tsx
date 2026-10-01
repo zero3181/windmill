@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
   content: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,
-    paddingBottom: spacing.xxl * 2,
+    paddingBottom: spacing.xl,
     gap: spacing.xl - 4,
   },
   banner: {

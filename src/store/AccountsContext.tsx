@@ -1,10 +1,12 @@
 import { useSQLiteContext } from 'expo-sqlite';
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import * as Notifications from 'expo-notifications';
 import uuid from 'react-native-uuid';
 import { computeMaturityDate, todayKST } from '../lib/calc';
 import {
   deleteAccount as dbDeleteAccount,
   deleteAllAccounts,
+  deleteAllSettings,
   getAllSettings,
   insertAccount,
   listAccounts,
@@ -33,6 +35,8 @@ interface AccountsContextValue {
   closeAccount: (id: string, status?: 'closed' | 'matured') => Promise<void>;
   updateSettings: (patch: Partial<AppSettings>) => Promise<void>;
   restoreFromBackup: (accounts: Account[], settings: Record<string, string>) => Promise<void>;
+  /** 모든 계좌·설정·예약 알림을 지워 처음 설치한 상태로 되돌린다 */
+  resetAll: () => Promise<void>;
   refresh: () => Promise<void>;
   rawSettings: Record<string, string>;
 }
@@ -154,6 +158,13 @@ export function AccountsProvider({ children }: { children: React.ReactNode }) {
     [db, refresh]
   );
 
+  const resetAll = useCallback(async () => {
+    await deleteAllAccounts(db);
+    await deleteAllSettings(db);
+    await Notifications.cancelAllScheduledNotificationsAsync().catch(() => undefined);
+    await refresh();
+  }, [db, refresh]);
+
   const value: AccountsContextValue = {
     accounts,
     settings,
@@ -164,6 +175,7 @@ export function AccountsProvider({ children }: { children: React.ReactNode }) {
     closeAccount,
     updateSettings,
     restoreFromBackup,
+    resetAll,
     refresh,
     rawSettings,
   };

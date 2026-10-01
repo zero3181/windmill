@@ -143,3 +143,7 @@ export async function getAllSettings(db: SQLiteDatabase): Promise<Record<string,
   const rows = await db.getAllAsync<{ key: string; value: string }>('SELECT * FROM settings');
   return Object.fromEntries(rows.map((r) => [r.key, r.value]));
 }
+
+export async function deleteAllSettings(db: SQLiteDatabase): Promise<void> {
+  await db.runAsync('DELETE FROM settings');
+}

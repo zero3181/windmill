@@ -9,7 +9,7 @@ import { colors, spacing } from '../theme';
 import { TAX_TYPE_LABELS, type TaxType } from '../types/account';
 
 export default function SettingsScreen() {
-  const { accounts, rawSettings, settings, updateSettings, restoreFromBackup } = useAccounts();
+  const { accounts, rawSettings, settings, updateSettings, restoreFromBackup, resetAll } = useAccounts();
   const router = useRouter();
   const [busy, setBusy] = useState(false);
 
@@ -50,6 +50,22 @@ export default function SettingsScreen() {
     } finally {
       setBusy(false);
     }
+  }
+
+  function handleReset() {
+    Alert.alert('초기화', '모든 계좌와 설정을 지우고 처음 설치한 상태로 돌아가요. 되돌릴 수 없어요.', [
+      { text: '취소', style: 'cancel' },
+      {
+        text: '초기화',
+        style: 'destructive',
+        onPress: async () => {
+          await resetAll();
+          // 홈으로 돌아가 처음 설치했을 때처럼 소개부터 보여 준다.
+          router.dismissAll();
+          router.push('/onboarding');
+        },
+      },
+    ]);
   }
 
   function toggle(value: boolean, onChange: (v: boolean) => void) {
@@ -114,6 +130,10 @@ export default function SettingsScreen() {
 
       <GroupedSection title="도움말">
         <ListRow title="풍차돌리기 소개 다시 보기" chevron onPress={() => router.push('/onboarding')} />
+      </GroupedSection>
+
+      <GroupedSection>
+        <ListRow title="초기화" tint="destructive" onPress={busy ? undefined : handleReset} />
       </GroupedSection>
     </ScrollView>
   );

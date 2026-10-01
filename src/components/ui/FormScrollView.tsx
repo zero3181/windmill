@@ -20,6 +20,8 @@ export function FormScrollView({
       bottomOffset={bottomOffset}
       contentInsetAdjustmentBehavior="automatic"
       contentContainerStyle={contentContainerStyle}
+      // 내용 높이에 맞춰 올라오는 시트(fitToContents) 안에서도 내용만큼만 차지하고, 넘치면 스크롤한다.
+      style={{ flexGrow: 0 }}
       keyboardShouldPersistTaps="handled"
     >
       {children}

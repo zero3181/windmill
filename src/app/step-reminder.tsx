@@ -1,7 +1,7 @@
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, StyleSheet, Text, View } from 'react-native';
 import { PrimaryButton } from '../components/ui/Controls';
 import { addDays, addMonthsClamped, compareISODates, parseISODate, todayKST } from '../lib/calc';
 import { formatDateShort } from '../lib/format';
@@ -71,24 +71,23 @@ export default function StepReminderScreen() {
       <Stack.Toolbar placement="left">
         <Stack.Toolbar.Button onPress={() => router.back()}>닫기</Stack.Toolbar.Button>
       </Stack.Toolbar>
-      <ScrollView contentContainerStyle={styles.content}>
+      <View style={styles.content}>
         <Text style={styles.label}>{label}</Text>
         <DateTimePicker
           value={toDate(date)}
           mode="date"
           display="inline"
           locale="ko-KR"
-          minimumDate={toDate(earliest)}
-          maximumDate={toDate(monthEnd)}
+          minimumDate={toDate(today)}
           onChange={(_e, picked) => picked && setDate(toISO(picked))}
           accentColor={colors.primary}
         />
-        <Text style={styles.when}>{formatDateShort(date)} 오전 9시 (은행 여는 시간)에 알려드려요</Text>
+        <Text style={styles.when}>{formatDateShort(date)} 9시</Text>
         <View style={styles.actions}>
           <PrimaryButton label="알림 받기" onPress={handleSave} />
           {saved ? <PrimaryButton label="알림 끄기" variant="plain" onPress={handleOff} /> : null}
         </View>
-      </ScrollView>
+      </View>
     </>
   );
 }
