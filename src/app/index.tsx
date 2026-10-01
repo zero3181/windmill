@@ -28,7 +28,8 @@ const NAV_BAR_HEIGHT = 52;
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { accounts, loading, settings, updateSettings, closeAccount, reopenAccount } = useAccounts();
+  const { accounts, loading, settings, updateSettings, closeAccount, reopenAccount, removeAccount, restoreAccount } =
+    useAccounts();
   const { type, setType } = useWindmillType();
   const today = todayKST();
   const onboardingShown = useRef(false);
@@ -105,6 +106,17 @@ export default function HomeScreen() {
         .sort((a, b) => compareISODates(a.maturityDate, b.maturityDate)),
     [activeAccounts, type, today]
   );
+
+  // 목록에서 밀거나 길게 눌러 바로 처리: 확인 창 대신 '되돌리기'로 실수를 되돌릴 수 있게 한다.
+  async function handleQuickClose(account: Account) {
+    await closeAccount(account.id, 'closed');
+    notifyUndoable('중도 해지했어요', () => reopenAccount(account.id));
+  }
+
+  async function handleQuickDelete(account: Account) {
+    await removeAccount(account.id);
+    notifyUndoable('계좌를 삭제했어요', () => restoreAccount(account));
+  }
 
   async function handleRenew(account: Account) {
     await closeAccount(account.id, 'matured');
@@ -282,7 +294,13 @@ export default function HomeScreen() {
               {typeItems.length > 0 && (
                 <GroupedSection title={`내 ${TYPE_LABEL[type]} ${typeItems.length}개`}>
                   {typeItems.map((item) => (
-                    <AccountListItem key={item.account.id} item={item} outsideWindmill={!fitsWindmill(item.account, blades)} />
+                    <AccountListItem
+                      key={item.account.id}
+                      item={item}
+                      outsideWindmill={!fitsWindmill(item.account, blades)}
+                      onClose={handleQuickClose}
+                      onDelete={handleQuickDelete}
+                    />
                   ))}
                 </GroupedSection>
               )}

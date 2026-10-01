@@ -49,6 +49,7 @@ export function ListRow({
   tint = 'default',
   right,
   onPress,
+  onLongPress,
   disabled = false,
 }: {
   title: string;
@@ -59,6 +60,8 @@ export function ListRow({
   tint?: RowTint;
   right?: React.ReactNode;
   onPress?: () => void;
+  /** 길게 누르면 (메뉴 등) */
+  onLongPress?: () => void;
   /** 흐리게 보이고 누를 수 없다 */
   disabled?: boolean;
 }) {
@@ -71,7 +74,8 @@ export function ListRow({
         disabled && styles.rowDisabled,
       ]}
       onPress={onPress}
-      disabled={disabled || !onPress}
+      onLongPress={onLongPress}
+      disabled={disabled || (!onPress && !onLongPress)}
       accessibilityState={{ disabled }}
     >
       <View style={styles.rowMain}>
