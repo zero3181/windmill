@@ -88,7 +88,6 @@ export default function StepReminderScreen() {
           locale="ko-KR"
           minimumDate={toDate(today)}
           onChange={(_e, picked) => picked && setDate(toISO(picked))}
-          accentColor={colors.primary}
         />
         <Text style={styles.when}>{formatDateShort(date)} 9시</Text>
         <View style={styles.actions}>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Animated, Pressable, StyleSheet, Text } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { radius, spacing } from '../theme';
+import { colors, radius, spacing } from '../theme';
 
 /**
  * 화면 아래쪽에 잠깐 떴다가 사라지는 한 줄 안내. id가 바뀔 때마다 다시 뜬다.
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     borderRadius: radius.full,
-    backgroundColor: 'rgba(0, 0, 0, 0.82)',
+    backgroundColor: colors.overlay,
   },
   text: {
     fontSize: 15,

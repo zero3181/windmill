@@ -3,14 +3,14 @@ import { StyleSheet, Text, View } from 'react-native';
 import { todayKST } from '../lib/calc';
 import { selectWindmill, withFinancials } from '../lib/homeSelectors';
 import { buildSampleAccounts } from '../lib/sampleData';
-import { radius, spacing } from '../theme';
+import { colors, radius, spacing } from '../theme';
 import type { AccountType } from '../types/account';
 import { Segmented } from './ui/Controls';
 import { WindmillCard } from './WindmillCard';
 import { WindmillHero } from './WindmillHero';
 
-/** 도장 잉크색: 약간 바랜 검정 */
-const STAMP_INK = 'rgba(0, 0, 0, 0.78)';
+/** 도장 잉크색: 약간 바랜 검정 (어두운 화면에서는 바랜 흰색) */
+const STAMP_INK = colors.text;
 
 /**
  * 계좌가 하나도 없을 때 홈 아래에 보여 주는 미리보기. 데이터가 있을 때의 홈과 같은 순서로
@@ -76,7 +76,8 @@ const styles = StyleSheet.create({
     borderColor: STAMP_INK,
     borderRadius: radius.md,
     padding: 4,
-    backgroundColor: 'rgba(255, 255, 255, 0.55)',
+    backgroundColor: colors.card,
+    opacity: 0.8,
   },
   stampInner: {
     borderWidth: 1.5,

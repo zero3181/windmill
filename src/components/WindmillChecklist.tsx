@@ -1,6 +1,6 @@
 import { SymbolView, type SFSymbol } from 'expo-symbols';
 import React, { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View, type ColorValue } from 'react-native';
 import type { Checklist, ChecklistStep } from '../lib/checklist';
 import { formatDateShort, formatManwon, formatMonth } from '../lib/format';
 import { colors, radius, spacing } from '../theme';
@@ -181,7 +181,7 @@ export function WindmillChecklist({
   );
 }
 
-function StepIcon({ name, color }: { name: SFSymbol; color: string }) {
+function StepIcon({ name, color }: { name: SFSymbol; color: ColorValue }) {
   return (
     <SymbolView
       name={name}

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Defs, Ellipse, G, LinearGradient, Path, Stop } from 'react-native-svg';
 import { bladeMonth } from '../lib/blades';
+import { useDarkMode } from '../theme';
 import type { AccountType } from '../types/account';
 
 const AnimatedG = Animated.createAnimatedComponent(G);
@@ -19,8 +20,30 @@ const SWEEPS: Record<AccountType, string[]> = {
   savings: ['#00C8B3', '#00C0E8', '#0088FF', '#6155F5'],
   deposit: ['#FFCC00', '#FF8D28', '#FF6B4A', '#FF2D55'],
 };
-/** 아직 채우지 않은 날개 자리 (Activity 링의 빈 트랙처럼). 뒤의 탑이 비치지 않게 불투명하게 쓴다. */
-const EMPTY_FILL = '#E9E9EE';
+/**
+ * 날개 밖 그림의 색. 빈 날개 자리(empty)는 Activity 링의 빈 트랙처럼 쓰고, 뒤의 탑이 비치지 않게 불투명하게 둔다.
+ * SVG는 시스템 동적 색을 받지 못해 밝은/어두운 화면 색을 따로 둔다.
+ */
+const ART = {
+  light: {
+    empty: '#E9E9EE',
+    tower: ['#EDEDF2', '#E0E0E6', '#CFCFD6'],
+    shadow: '#000000',
+    hub: '#FFFFFF',
+    pin: '#C7C7CC',
+    labelBg: 'rgba(255, 255, 255, 0.92)',
+    labelText: '#3C3C43',
+  },
+  dark: {
+    empty: '#2C2C2E',
+    tower: ['#5A5A5F', '#48484C', '#3A3A3D'],
+    shadow: '#FFFFFF',
+    hub: '#E5E5EA',
+    pin: '#8E8E93',
+    labelBg: 'rgba(44, 44, 46, 0.92)',
+    labelText: '#EBEBF5',
+  },
+};
 
 interface Props {
   /** 날개 수 = 가입 기간(개월) */
@@ -95,6 +118,7 @@ export function Windmill({ blades, filled, width, type = 'savings', showMonths =
   const bladeWidth = blades <= 6 ? 33 : 18;
   const bladePath = blades <= 6 ? sailPath(bladeWidth, 13) : sailPath(bladeWidth, 8, 0.62);
   const box = BLADE_BOX * scale;
+  const art = ART[useDarkMode() ? 'dark' : 'light'];
 
   return (
     <View
@@ -110,13 +134,13 @@ export function Windmill({ blades, filled, width, type = 'savings', showMonths =
       <Svg width={width} height={width * (VIEW_H / VIEW)} viewBox={`0 0 ${VIEW} ${VIEW_H}`} style={StyleSheet.absoluteFill}>
         <Defs>
           <LinearGradient id="tower" x1="0" y1="0" x2="1" y2="0">
-            <Stop offset="0" stopColor="#EDEDF2" />
-            <Stop offset="0.55" stopColor="#E0E0E6" />
-            <Stop offset="1" stopColor="#CFCFD6" />
+            <Stop offset="0" stopColor={art.tower[0]} />
+            <Stop offset="0.55" stopColor={art.tower[1]} />
+            <Stop offset="1" stopColor={art.tower[2]} />
           </LinearGradient>
         </Defs>
         {/* 바닥 그림자 */}
-        <Ellipse cx={120} cy={181} rx={30} ry={3.5} fill="#000000" fillOpacity={0.06} />
+        <Ellipse cx={120} cy={181} rx={30} ry={3.5} fill={art.shadow} fillOpacity={0.06} />
         {/* 탑: 아래로 갈수록 부드럽게 넓어지는 짧은 기둥 */}
         <Path d="M105 180 Q106 119 115.4 91 Q120 84.5 124.6 91 Q134 119 135 180 Q120 184 105 180 Z" fill="url(#tower)" />
       </Svg>
@@ -135,7 +159,7 @@ export function Windmill({ blades, filled, width, type = 'savings', showMonths =
           {Array.from({ length: blades }, (_, i) => {
             const angle = (360 / blades) * i;
             if (!filledSet.has(i)) {
-              return <Path key={i} d={bladePath} fill={EMPTY_FILL} rotation={angle} origin="0, 0" />;
+              return <Path key={i} d={bladePath} fill={art.empty} rotation={angle} origin="0, 0" />;
             }
             const blade = (
               <Path d={bladePath} fill={bladeColor(i, blades, 1, type)} rotation={angle} origin="0, 0" />
@@ -150,8 +174,8 @@ export function Windmill({ blades, filled, width, type = 'savings', showMonths =
             );
           })}
           <Circle r={HUB_R + 1.5} fill="#000000" fillOpacity={0.08} />
-          <Circle r={HUB_R} fill="#FFFFFF" />
-          <Circle r={2.5} fill="#C7C7CC" />
+          <Circle r={HUB_R} fill={art.hub} />
+          <Circle r={2.5} fill={art.pin} />
         </Svg>
       </Animated.View>
 
@@ -167,9 +191,12 @@ export function Windmill({ blades, filled, width, type = 'savings', showMonths =
             <View
               key={i}
               pointerEvents="none"
-              style={[styles.monthLabel, { left: x * scale - MONTH_LABEL / 2, top: y * scale - MONTH_LABEL / 2 }]}
+              style={[
+                styles.monthLabel,
+                { left: x * scale - MONTH_LABEL / 2, top: y * scale - MONTH_LABEL / 2, backgroundColor: art.labelBg },
+              ]}
             >
-              <Text style={styles.monthText} maxFontSizeMultiplier={1.3}>
+              <Text style={[styles.monthText, { color: art.labelText }]} maxFontSizeMultiplier={1.3}>
                 {bladeMonth(i, blades)}
               </Text>
             </View>
@@ -189,12 +216,10 @@ const styles = StyleSheet.create({
     borderRadius: MONTH_LABEL / 2,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.92)',
   },
   monthText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#3C3C43',
   },
 });
 
