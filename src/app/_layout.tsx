@@ -32,7 +32,6 @@ export default function RootLayout() {
                   <Stack.Screen name="month/[month]" options={{ title: '월별 만기' }} />
                   <Stack.Screen name="archive" options={{ title: '종료된 계좌' }} />
                   <Stack.Screen name="settings" options={{ title: '설정' }} />
-                  <Stack.Screen name="calculator" options={{ title: '풍차 계산기' }} />
                   <Stack.Screen name="rates" options={{ title: '금리 비교' }} />
                   <Stack.Screen name="create-windmill" options={{ title: '풍차 만들기', ...FIT_SHEET }} />
                   <Stack.Screen name="add-account" options={{ title: '계좌 등록', ...FIT_SHEET }} />

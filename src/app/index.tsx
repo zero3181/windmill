@@ -140,6 +140,51 @@ export default function HomeScreen() {
 
   const otherType = TYPES.find((t) => t !== type)!;
   const hasData = typesInUse.length > 0;
+  const todoFirst = matured.length > 0 || Boolean(checklist?.steps.some((st) => st.status === 'now'));
+
+  const summaryCard = (
+    <WindmillCard
+      windmill={windmill}
+      type={type}
+      size={blades}
+      onSizeChange={
+        goal
+          ? undefined
+          : (size) => updateSettings({ windmillSize: { ...settings.windmillSize, [type]: size } })
+      }
+      emptyLabel={`첫 ${TYPE_LABEL[type]}을 가입하면 여기에 가입~만기 그래프가 생겨요`}
+    />
+  );
+
+  const todoSection = checklist ? (
+      <WindmillChecklist
+        checklist={checklist}
+        type={type}
+        today={today}
+        onJoin={handleJoin}
+        onFindProducts={handleFindProducts}
+        onOpenAccount={(id) => router.push(`/account/${id}`)}
+        reminderDate={settings.stepReminder[type]}
+        matured={matured}
+        onRenew={handleRenew}
+        onCloseMatured={(account) => closeAccount(account.id, 'matured')}
+        onReminder={(step) =>
+          router.push({
+            pathname: '/step-reminder',
+            params: { type, month: step.month, step: String(step.index + 1) },
+          })
+        }
+      />
+    ) : (
+      <Card style={styles.goalPrompt}>
+        <Text style={styles.goalTitle}>할 일 안내 받기</Text>
+        <Text style={styles.goalBody}>날개 수와 금액만 정하면 할 일을 알려드려요.</Text>
+        <PrimaryButton
+          label="풍차 만들기"
+          onPress={() => router.push({ pathname: '/create-windmill', params: { type } })}
+        />
+      </Card>
+    );
 
   return (
     <>
@@ -222,47 +267,11 @@ export default function HomeScreen() {
                 />
               )}
 
-              <WindmillCard
-                windmill={windmill}
-                type={type}
-                size={blades}
-                onSizeChange={
-                  goal
-                    ? undefined
-                    : (size) => updateSettings({ windmillSize: { ...settings.windmillSize, [type]: size } })
-                }
-                emptyLabel={`첫 ${TYPE_LABEL[type]}을 가입하면 여기에 가입~만기 그래프가 생겨요`}
-              />
+              {/* 이번 달에 할 일이나 만기된 계좌가 있으면 할 일을 그래프보다 먼저 보여 준다 */}
+              {todoFirst && todoSection}
+              {summaryCard}
+              {!todoFirst && todoSection}
 
-              {checklist ? (
-                <WindmillChecklist
-                  checklist={checklist}
-                  type={type}
-                  today={today}
-                  onJoin={handleJoin}
-                  onFindProducts={handleFindProducts}
-                  onOpenAccount={(id) => router.push(`/account/${id}`)}
-                  reminderDate={settings.stepReminder[type]}
-                  matured={matured}
-                  onRenew={handleRenew}
-                  onCloseMatured={(account) => closeAccount(account.id, 'matured')}
-                  onReminder={(step) =>
-                    router.push({
-                      pathname: '/step-reminder',
-                      params: { type, month: step.month, step: String(step.index + 1) },
-                    })
-                  }
-                />
-              ) : (
-                <Card style={styles.goalPrompt}>
-                  <Text style={styles.goalTitle}>할 일 안내 받기</Text>
-                  <Text style={styles.goalBody}>날개 수와 금액만 정하면 할 일을 알려드려요.</Text>
-                  <PrimaryButton
-                    label="풍차 만들기"
-                    onPress={() => router.push({ pathname: '/create-windmill', params: { type } })}
-                  />
-                </Card>
-              )}
 
               {typeItems.length > 0 && (
                 <GroupedSection title={`내 ${TYPE_LABEL[type]} ${typeItems.length}개`}>

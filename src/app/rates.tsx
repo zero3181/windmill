@@ -25,7 +25,7 @@ export default function RatesScreen({ pick = false }: { pick?: boolean }) {
 
   const [termMonths, setTermMonths] = useState(Number(params.term) || 12);
   const [paramTerm, setParamTerm] = useState(params.term);
-  // 계산기나 체크리스트에서 다른 기간으로 다시 넘어오면 그 기간으로 맞춘다.
+  // 할 일이나 가입 화면에서 다른 기간으로 다시 넘어오면 그 기간으로 맞춘다.
   if (params.term !== paramTerm) {
     setParamTerm(params.term);
     if (params.term) setTermMonths(Number(params.term) || 12);

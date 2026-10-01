@@ -99,7 +99,6 @@ export default function SettingsScreen() {
       </GroupedSection>
 
       <GroupedSection title="세부 기능">
-        <ListRow title="풍차 계산기" chevron onPress={() => router.push('/calculator')} />
         <ListRow title="금리 비교" chevron onPress={() => router.push('/rates')} />
         <ListRow title="계좌 직접 등록" chevron onPress={() => router.push('/add-account')} />
       </GroupedSection>

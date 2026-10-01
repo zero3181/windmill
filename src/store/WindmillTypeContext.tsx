@@ -8,7 +8,7 @@ interface WindmillTypeValue {
 
 const WindmillTypeContext = createContext<WindmillTypeValue | null>(null);
 
-/** 적금 풍차/예금 풍차 선택을 홈·계산기·금리 비교가 함께 쓴다. */
+/** 홈에서 고른 적금 풍차/예금 풍차. 금리 비교는 처음 열 때 이 값을 쓴다. */
 export function WindmillTypeProvider({ children }: { children: React.ReactNode }) {
   const [type, setType] = useState<AccountType>('savings');
   const value = useMemo(() => ({ type, setType }), [type]);
