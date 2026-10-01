@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { AccessibilityInfo, Animated, Easing, StyleSheet, View } from 'react-native';
+import { AccessibilityInfo, Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import Svg, { Circle, Defs, Ellipse, G, LinearGradient, Path, Stop } from 'react-native-svg';
 import { bladeMonth } from '../lib/blades';
 import type { AccountType } from '../types/account';
@@ -30,13 +30,15 @@ interface Props {
   width: number;
   /** 적금(한색) / 예금(난색) 풍차 색 */
   type?: AccountType;
+  /** 날개 끝에 각 날개가 뜻하는 달(1~12)을 보여 준다. 보이는 동안은 돌지 않는다. */
+  showMonths?: boolean;
 }
 
 /**
  * 날개 하나가 달 하나를 뜻하는 풍차. 시계처럼 12시 방향이 12월, 1시 방향이 1월이다.
  * 계좌의 만기월 자리에 날개가 생기고, 모든 자리가 채워지면 돌아간다.
  */
-export function Windmill({ blades, filled, width, type = 'savings' }: Props) {
+export function Windmill({ blades, filled, width, type = 'savings', showMonths = false }: Props) {
   const filledSet = new Set(filled);
   const count = filledSet.size;
   const complete = count >= blades;
@@ -74,7 +76,7 @@ export function Windmill({ blades, filled, width, type = 'savings' }: Props) {
 
   // 날개를 모두 채우면 천천히 계속 돈다.
   useEffect(() => {
-    if (!complete || reduceMotion) {
+    if (!complete || reduceMotion || showMonths) {
       spin.stopAnimation();
       spin.setValue(0);
       return;
@@ -84,13 +86,14 @@ export function Windmill({ blades, filled, width, type = 'savings' }: Props) {
     );
     loop.start();
     return () => loop.stop();
-  }, [complete, reduceMotion, spin]);
+  }, [complete, reduceMotion, showMonths, spin]);
 
   const spinDeg = spin.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '360deg'] });
   const wiggleDeg = wiggle.interpolate({ inputRange: [-180, 180], outputRange: ['-180deg', '180deg'] });
 
   // 12날개는 이웃 날개와 겹치지 않을 만큼만 넓힌다.
-  const bladePath = blades <= 6 ? sailPath(33, 13) : sailPath(18, 8, 0.62);
+  const bladeWidth = blades <= 6 ? 33 : 18;
+  const bladePath = blades <= 6 ? sailPath(bladeWidth, 13) : sailPath(bladeWidth, 8, 0.62);
   const box = BLADE_BOX * scale;
 
   return (
@@ -151,9 +154,47 @@ export function Windmill({ blades, filled, width, type = 'savings' }: Props) {
           <Circle r={2.5} fill="#C7C7CC" />
         </Svg>
       </Animated.View>
+
+      {showMonths &&
+        Array.from({ length: blades }, (_, i) => {
+          // 날개 끝 가운데(돛 폭의 절반 지점) 조금 바깥에 달 숫자를 둔다.
+          const rad = ((360 / blades) * i * Math.PI) / 180;
+          const lx = bladeWidth / 2;
+          const ly = -(BLADE_LEN + 9);
+          const x = HUB.x + lx * Math.cos(rad) - ly * Math.sin(rad);
+          const y = HUB.y + lx * Math.sin(rad) + ly * Math.cos(rad);
+          return (
+            <View
+              key={i}
+              pointerEvents="none"
+              style={[styles.monthLabel, { left: x * scale - MONTH_LABEL / 2, top: y * scale - MONTH_LABEL / 2 }]}
+            >
+              <Text style={styles.monthText}>{bladeMonth(i, blades)}</Text>
+            </View>
+          );
+        })}
     </View>
   );
 }
+
+const MONTH_LABEL = 22;
+
+const styles = StyleSheet.create({
+  monthLabel: {
+    position: 'absolute',
+    width: MONTH_LABEL,
+    height: MONTH_LABEL,
+    borderRadius: MONTH_LABEL / 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+  },
+  monthText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#3C3C43',
+  },
+});
 
 /**
  * 도톰한 돛 모양 날개 (위쪽을 향함): 스파(x=0) 한쪽으로 넓게 펼쳐지고 모서리를 크게 둥글린다.

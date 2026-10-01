@@ -4,7 +4,10 @@ import { StyleSheet, Text } from 'react-native';
 import { AccountForm } from '../components/AccountForm';
 import { Card, GroupedSection, ListRow } from '../components/ui/Grouped';
 import { formatManwon } from '../lib/format';
-import { ensureNotificationSetup } from '../lib/notifications';
+import { fitsWindmill } from '../lib/blades';
+import { computeMaturityDate } from '../lib/calc';
+import { notifySaved } from '../lib/feedback';
+import { askNotificationPermission } from '../lib/notifications';
 import { useAccounts } from '../store/AccountsContext';
 import { colors, spacing } from '../theme';
 import type { Account, NewAccountInput } from '../types/account';
@@ -53,10 +56,17 @@ export default function NewAccountScreen() {
   }
 
   async function handleSubmit(input: NewAccountInput) {
-    // 만기·납입일 알림에 쓸 권한은 계좌를 처음 등록하는 이 순간에 묻는다.
-    await ensureNotificationSetup(true).catch(() => false);
+    const isFirstAccount = accounts.length === 0;
     await addAccount(input);
+    // 풍차에 들어가는 계좌면 채워진 달 날개를, 아니면 등록했다는 것만 알린다.
+    const goal = settings.goals[input.type];
+    const maturity = input.maturityDate || computeMaturityDate(input.startDate, input.termMonths);
+    notifySaved(goal && fitsWindmill(input, goal.blades) ? `${Number(maturity.slice(5, 7))}월 날개를 채웠어요` : '계좌를 등록했어요');
     router.back();
+    // 첫 계좌를 등록하면, 만기 알림에 쓸 권한을 이유와 함께 묻는다.
+    if (isFirstAccount) {
+      await askNotificationPermission('만기 7일 전과 다음 가입 날에 알려드릴게요.').catch(() => undefined);
+    }
   }
 
   return (

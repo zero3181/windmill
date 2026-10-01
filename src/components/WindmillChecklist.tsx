@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import type { Checklist, ChecklistStep } from '../lib/checklist';
 import { formatDateShort, formatManwon, formatMonth } from '../lib/format';
 import { colors, radius, spacing } from '../theme';
-import type { AccountType } from '../types/account';
+import type { Account, AccountType } from '../types/account';
 import { Chevron } from './ui/Grouped';
 
 interface Props {
@@ -20,9 +20,17 @@ interface Props {
   reminderDate?: string;
   /** 알림 날짜를 고르는 창을 연다 */
   onReminder: (step: ChecklistStep) => void;
+  /** 만기일이 지났는데 아직 해지를 기록하지 않은 계좌 (할 일 맨 위에 먼저 보여 준다) */
+  matured: Account[];
+  /** 만기 해지를 기록하고 같은 조건으로 다시 가입 */
+  onRenew: (account: Account) => void;
+  /** 만기 해지만 기록 */
+  onCloseMatured: (account: Account) => void;
 }
 
 const UNIT: Record<AccountType, string> = { savings: '적금', deposit: '예금' };
+/** 처음에 보여 줄 앞으로의 단계 수 */
+const VISIBLE_PENDING = 3;
 
 /** 풍차를 채우는 할 일 목록. 지금 할 일 하나만 활성화하고, 그다음 단계들은 흐리게 보여 준다. */
 export function WindmillChecklist({
@@ -34,13 +42,20 @@ export function WindmillChecklist({
   onOpenAccount,
   reminderDate,
   onReminder,
+  matured,
+  onRenew,
+  onCloseMatured,
 }: Props) {
   const { steps, perAccount, termMonths, doneCount, complete } = checklist;
   const [showDone, setShowDone] = useState(false);
+  const [showAllPending, setShowAllPending] = useState(false);
   const unit = UNIT[type];
 
   const done = steps.filter((s) => s.status === 'done');
-  const pending = steps.filter((s) => s.status !== 'done');
+  const allPending = steps.filter((s) => s.status !== 'done');
+  // 앞으로 할 단계는 가까운 몇 개만 보이고 나머지는 접어 둔다.
+  const pending = showAllPending ? allPending : allPending.slice(0, VISIBLE_PENDING);
+  const hiddenCount = allPending.length - pending.length;
   // 완료한 단계가 여럿이면 한 줄로 접어 둔다.
   const collapseDone = done.length > 1 && !showDone;
 
@@ -59,6 +74,25 @@ export function WindmillChecklist({
       </Text>
 
       <View style={styles.card}>
+        {matured.map((account) => (
+          <View key={account.id} style={[styles.row, styles.rowMatured]}>
+            <StepIcon name="calendar.badge.checkmark" color={colors.warning} />
+            <View style={styles.rowMain}>
+              <Text style={styles.nowTitle} lineBreakStrategyIOS="hangul-word">
+                {Number(account.maturityDate.slice(5, 7))}월 {unit}이 만기됐어요
+              </Text>
+              <View style={styles.actions}>
+                <Pressable style={styles.joinButton} onPress={() => onRenew(account)}>
+                  <Text style={styles.joinText}>만기 해지하고 다시 가입</Text>
+                </Pressable>
+                <Pressable style={styles.linkButton} onPress={() => onCloseMatured(account)} hitSlop={6}>
+                  <Text style={styles.linkText}>해지만</Text>
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        ))}
+
         {collapseDone ? (
           <Pressable style={styles.row} onPress={() => setShowDone(true)}>
             <StepIcon name="checkmark.circle.fill" color={colors.success} />
@@ -142,6 +176,13 @@ export function WindmillChecklist({
             </View>
           );
         })}
+
+        {hiddenCount > 0 && (
+          <Pressable style={[styles.row, styles.rowCentered]} onPress={() => setShowAllPending(true)}>
+            <Text style={[styles.moreText, styles.rowMain]}>그 뒤 {hiddenCount}단계 더보기</Text>
+            <Chevron direction="down" />
+          </Pressable>
+        )}
       </View>
     </View>
   );
@@ -200,6 +241,14 @@ const styles = StyleSheet.create({
   },
   rowNow: {
     backgroundColor: colors.primarySoft,
+  },
+  moreText: {
+    fontSize: 15,
+    color: colors.primary,
+    paddingLeft: 38,
+  },
+  rowMatured: {
+    backgroundColor: 'rgba(255, 141, 40, 0.12)',
   },
   rowCentered: {
     alignItems: 'center',

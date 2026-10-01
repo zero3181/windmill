@@ -1,5 +1,5 @@
 import { Stack, useRouter } from 'expo-router';
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { AccountListItem } from '../components/AccountListItem';
 import { EmptyState } from '../components/EmptyState';
@@ -8,25 +8,40 @@ import { PrimaryButton, Segmented } from '../components/ui/Controls';
 import { Card, GroupedSection, ListRow } from '../components/ui/Grouped';
 import { WindmillCard } from '../components/WindmillCard';
 import { WindmillChecklist } from '../components/WindmillChecklist';
+import { Toast } from '../components/Toast';
 import { WindmillHero } from '../components/WindmillHero';
 import { fitsWindmill } from '../lib/blades';
-import { todayKST } from '../lib/calc';
+import { compareISODates, todayKST } from '../lib/calc';
 import { buildChecklist, type ChecklistStep } from '../lib/checklist';
+import { onSavedFeedback, successHaptic } from '../lib/feedback';
 import { selectWindmill, withFinancials } from '../lib/homeSelectors';
 import { useAccounts } from '../store/AccountsContext';
 import { useWindmillType } from '../store/WindmillTypeContext';
 import { colors, spacing } from '../theme';
-import type { AccountType } from '../types/account';
+import type { Account, AccountType } from '../types/account';
 
 const TYPE_LABEL = { savings: '적금', deposit: '예금' } as const;
 const TYPES: AccountType[] = ['savings', 'deposit'];
 
 export default function HomeScreen() {
   const router = useRouter();
-  const { accounts, loading, settings, updateSettings } = useAccounts();
+  const { accounts, loading, settings, updateSettings, closeAccount } = useAccounts();
   const { type, setType } = useWindmillType();
   const today = todayKST();
   const onboardingShown = useRef(false);
+  const scrollRef = useRef<ScrollView>(null);
+  const [toast, setToast] = useState<{ message: string | null; id: number }>({ message: null, id: 0 });
+
+  // 가입을 기록하고 돌아오면 맨 위로 올려 날개가 자라는 모습을 보여 주고, 안내와 진동을 낸다.
+  useEffect(
+    () =>
+      onSavedFeedback((message) => {
+        scrollRef.current?.scrollTo({ y: 0, animated: true });
+        setToast((t) => ({ message, id: t.id + 1 }));
+        successHaptic();
+      }),
+    []
+  );
 
   useEffect(() => {
     if (loading || settings.onboardingDone || onboardingShown.current) return;
@@ -63,6 +78,25 @@ export default function HomeScreen() {
     () => (goal ? buildChecklist(goal, type, activeAccounts, today) : null),
     [goal, type, activeAccounts, today]
   );
+
+  // 만기일이 지났는데 아직 해지를 기록하지 않은 계좌: 할 일 맨 위에서 먼저 정리하게 한다.
+  const matured = useMemo(
+    () =>
+      activeAccounts
+        .filter((a) => a.type === type && compareISODates(a.maturityDate, today) <= 0)
+        .sort((a, b) => compareISODates(a.maturityDate, b.maturityDate)),
+    [activeAccounts, type, today]
+  );
+
+  async function handleRenew(account: Account) {
+    await closeAccount(account.id, 'matured');
+    // 만기로 빈 날개 자리를 같은 조건으로 다시 채운다.
+    const prefill = { type, amount: checklist?.perAccount ?? account.amount, termMonths: checklist?.termMonths ?? account.termMonths };
+    router.push({
+      pathname: '/add-account',
+      params: { prefill: JSON.stringify(prefill), step: String(Math.max(1, checklist?.doneCount ?? 1)) },
+    });
+  }
 
   function handleJoin(step: ChecklistStep) {
     const prefill = { type, amount: checklist?.perAccount, termMonths: checklist?.termMonths };
@@ -117,7 +151,7 @@ export default function HomeScreen() {
         </Stack.Toolbar.Menu>
       </Stack.Toolbar>
 
-      <ScrollView contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.content}>
+      <ScrollView ref={scrollRef} contentInsetAdjustmentBehavior="automatic" contentContainerStyle={styles.content}>
         {typesInUse.length === 0 ? (
           <>
             <EmptyState />
@@ -159,6 +193,9 @@ export default function HomeScreen() {
                 onFindProducts={handleFindProducts}
                 onOpenAccount={(id) => router.push(`/account/${id}`)}
                 reminderDate={settings.stepReminder[type]}
+                matured={matured}
+                onRenew={handleRenew}
+                onCloseMatured={(account) => closeAccount(account.id, 'matured')}
                 onReminder={(step) =>
                   router.push({
                     pathname: '/step-reminder',
@@ -193,6 +230,7 @@ export default function HomeScreen() {
           </GroupedSection>
         )}
       </ScrollView>
+      <Toast message={toast.message} id={toast.id} />
     </>
   );
 }

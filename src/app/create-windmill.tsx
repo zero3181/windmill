@@ -4,6 +4,7 @@ import { Alert, StyleSheet, View } from 'react-native';
 import { Segmented } from '../components/ui/Controls';
 import { InputRow } from '../components/ui/FormRows';
 import { GroupedSection, ListRow } from '../components/ui/Grouped';
+import { RampChart } from '../components/RampChart';
 import { Windmill } from '../components/Windmill';
 import { allBlades } from '../lib/blades';
 import { formatManwon } from '../lib/format';
@@ -15,11 +16,16 @@ import type { AccountType } from '../types/account';
 import { FormScrollView } from '../components/ui/FormScrollView';
 
 const UNIT: Record<AccountType, string> = { savings: '적금', deposit: '예금' };
-/** 처음 만들 때 채워 둘 금액 (계좌 하나에 월 10만 원 / 1천만 원이 되도록 날개 수에 맞춘다) */
+/**
+ * 처음 만들 때 채워 둘 금액. 적금은 계좌 하나에 월 10만 원, 예금은 계좌 하나에 100만 원이 되도록
+ * 날개 수에 맞춘다 (예금은 큰 숫자가 부담스럽지 않게 낮게 둔다).
+ */
 const DEFAULT_TOTAL: Record<AccountType, Record<WindmillSize, number>> = {
   savings: { 6: 600_000, 12: 1_200_000 },
-  deposit: { 6: 60_000_000, 12: 120_000_000 },
+  deposit: { 6: 6_000_000, 12: 12_000_000 },
 };
+/** 금액 칸 제목: 예금은 이미 가진 목돈을 나누는 것이라 '얼마 있는지'로 묻는다 */
+const AMOUNT_TITLE: Record<AccountType, string> = { savings: '매달 저금할 금액', deposit: '모아 둔 목돈' };
 
 /** 12개월은 '1년'처럼 읽기 쉽게 */
 function termLabel(months: number): string {
@@ -59,16 +65,17 @@ export default function CreateWindmillScreen() {
   const outsideCount = accounts.filter((a) => a.status === 'active' && a.type === type && a.termMonths !== blades).length;
   const unit = UNIT[type];
 
+  // 적금은 아래 막대 그림이 늘어나는 금액을 보여 주므로, 계좌 하나 금액만 적는다.
   const amountFooter =
     perAccount <= 0
       ? undefined
       : type === 'savings'
-        ? `계좌 하나에 월 ${formatManwon(perAccount)} · ${blades}개월째부터 매달 ${formatManwon(perAccount * blades)}`
+        ? `계좌 하나에 월 ${formatManwon(perAccount)}`
         : `계좌 하나에 ${formatManwon(perAccount)}`;
 
   async function handleSave() {
     if (perAccount <= 0) {
-      Alert.alert('금액을 입력해 주세요', `${type === 'savings' ? '매달 저금할 금액' : '총 저금액'}을 알려 주세요.`);
+      Alert.alert('금액을 입력해 주세요', `${AMOUNT_TITLE[type]}을 알려 주세요.`);
       return;
     }
     await updateSettings({
@@ -138,7 +145,7 @@ export default function CreateWindmillScreen() {
           />
         </GroupedSection>
 
-        <GroupedSection title={type === 'savings' ? '매달 저금할 금액' : '총 저금액'} footer={amountFooter}>
+        <GroupedSection title={AMOUNT_TITLE[type]} footer={amountFooter}>
           <InputRow
             value={total > 0 ? total.toLocaleString('ko-KR') : ''}
             onChangeText={(t) => {
@@ -150,6 +157,8 @@ export default function CreateWindmillScreen() {
             suffix="원"
           />
         </GroupedSection>
+
+        {type === 'savings' && perAccount > 0 && <RampChart perAccount={perAccount} blades={blades} />}
 
         {editing && (
           <GroupedSection>

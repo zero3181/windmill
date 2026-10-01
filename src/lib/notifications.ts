@@ -1,5 +1,5 @@
 import * as Notifications from 'expo-notifications';
-import { Platform } from 'react-native';
+import { Alert, Platform } from 'react-native';
 import type { Account } from '../types/account';
 import { addDays, compareISODates, parseISODate, todayKST } from './calc';
 import { buildChecklist } from './checklist';
@@ -35,6 +35,25 @@ export async function ensureNotificationSetup(request = false): Promise<boolean>
     });
   }
   return granted;
+}
+
+/**
+ * 알림 권한을 이유와 함께 묻는다. iOS 권한 창은 한 번 '허용 안 함'을 누르면 다시 띄울 수 없어서,
+ * 먼저 앱의 확인 창으로 왜 필요한지 보여 주고 '알림 받기'를 누른 사람에게만 권한 창을 띄운다.
+ * - granted: 허용됨 / later: '나중에'(다음에 다시 물을 수 있음) / denied: 시스템에서 꺼져 있음
+ */
+export async function askNotificationPermission(reason: string): Promise<'granted' | 'later' | 'denied'> {
+  const existing = await Notifications.getPermissionsAsync();
+  if (existing.granted) return 'granted';
+  if (!existing.canAskAgain) return 'denied';
+  const yes = await new Promise<boolean>((resolve) =>
+    Alert.alert('알림을 받을까요?', reason, [
+      { text: '나중에', style: 'cancel', onPress: () => resolve(false) },
+      { text: '알림 받기', onPress: () => resolve(true) },
+    ])
+  );
+  if (!yes) return 'later';
+  return (await ensureNotificationSetup(true)) ? 'granted' : 'denied';
 }
 
 function dateAt9am(iso: string): Date {
@@ -115,40 +134,29 @@ export async function rescheduleAllNotifications(
         });
       }
     }
+  }
 
-    if (
-      account.type === 'savings' &&
-      settings.notifyPayday &&
-      compareISODates(account.maturityDate, today) > 0
-    ) {
+  // 적금 납입일: 같은 날 납입하는 적금을 한 통으로 묶어 매달 알린다 (계좌마다 따로 오면 너무 많다).
+  if (settings.notifyPayday) {
+    const byDay = new Map<number, Account[]>();
+    for (const account of active) {
+      if (account.type !== 'savings' || compareISODates(account.maturityDate, today) <= 0) continue;
       const day = account.payDay ?? parseISODate(account.startDate).d;
+      byDay.set(day, [...(byDay.get(day) ?? []), account]);
+    }
+    for (const [day, list] of byDay) {
+      const total = list.reduce((sum, a) => sum + a.amount, 0);
       const content = {
         title: '오늘은 적금 납입일이에요',
-        body: `${[account.name, account.bank].filter(Boolean).join(' · ')} · ${formatManwon(account.amount)}`,
+        body: list.length === 1 ? `${list[0].name} · ${formatManwon(total)}` : `적금 ${list.length}건 · ${formatManwon(total)}`,
       };
-      if (Platform.OS === 'ios') {
-        await Notifications.scheduleNotificationAsync({
-          content,
-          trigger: {
-            type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
-            day,
-            hour: 9,
-            minute: 0,
-            repeats: true,
-          },
-        });
-      } else {
-        await Notifications.scheduleNotificationAsync({
-          content,
-          trigger: {
-            type: Notifications.SchedulableTriggerInputTypes.MONTHLY,
-            day,
-            hour: 9,
-            minute: 0,
-            channelId: CHANNEL_ID,
-          },
-        });
-      }
+      await Notifications.scheduleNotificationAsync({
+        content,
+        trigger:
+          Platform.OS === 'ios'
+            ? { type: Notifications.SchedulableTriggerInputTypes.CALENDAR, day, hour: 9, minute: 0, repeats: true }
+            : { type: Notifications.SchedulableTriggerInputTypes.MONTHLY, day, hour: 9, minute: 0, channelId: CHANNEL_ID },
+      });
     }
   }
 }

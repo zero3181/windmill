@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Switch } from 'react-native';
 import { GroupedSection, ListRow } from '../components/ui/Grouped';
 import { exportBackup, pickAndParseBackup } from '../lib/backup';
-import { ensureNotificationSetup } from '../lib/notifications';
+import { askNotificationPermission } from '../lib/notifications';
 import { useAccounts } from '../store/AccountsContext';
 import { colors, spacing } from '../theme';
 import { TAX_TYPE_LABELS, type TaxType } from '../types/account';
@@ -71,7 +71,10 @@ export default function SettingsScreen() {
   function toggle(value: boolean, onChange: (v: boolean) => void) {
     // 알림을 켜는 순간 아직 권한이 없으면 묻는다.
     const handleChange = async (v: boolean) => {
-      if (v) await ensureNotificationSetup(true).catch(() => false);
+      if (v) {
+        const permission = await askNotificationPermission('켜 둔 알림을 받으려면 알림 권한이 필요해요.').catch(() => 'denied' as const);
+        if (permission === 'later') return;
+      }
       onChange(v);
     };
     return <Switch value={value} onValueChange={handleChange} trackColor={{ true: colors.success }} />;

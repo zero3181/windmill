@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { allBlades, bladeMonth } from '../lib/blades';
 import { colors, spacing } from '../theme';
 import type { AccountType } from '../types/account';
@@ -25,9 +25,23 @@ export function WindmillHero({ blades, filled, type }: { blades: number; filled:
           ? `${missing.map((m) => `${m}월`).join('·')} 날개만 채우면 풍차가 돌아가요`
           : `날개 ${filledSet.size}/${blades} · 만기월이 다른 계좌로 날개를 채워 보세요`;
 
+  // 풍차를 누르면 각 날개가 몇 월인지 잠깐 보여 준다.
+  const [showMonths, setShowMonths] = useState(false);
+  useEffect(() => {
+    if (!showMonths) return;
+    const t = setTimeout(() => setShowMonths(false), 3000);
+    return () => clearTimeout(t);
+  }, [showMonths]);
+
   return (
     <View style={styles.hero}>
-      <Windmill blades={blades} filled={filled} width={238} type={type} />
+      <Pressable
+        onPress={() => setShowMonths(true)}
+        accessibilityRole="button"
+        accessibilityHint="각 날개가 몇 월인지 보여 줘요"
+      >
+        <Windmill blades={blades} filled={filled} width={238} type={type} showMonths={showMonths} />
+      </Pressable>
       <Text style={styles.caption}>{caption}</Text>
     </View>
   );

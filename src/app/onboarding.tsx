@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAccounts } from '../store/AccountsContext';
 import { colors, radius, spacing } from '../theme';
 
-const PAGE_COUNT = 4;
+const PAGE_COUNT = 2;
 
 const BENEFITS: { icon: SFSymbol; title: string; body: string }[] = [
   { icon: 'calendar', title: '매달 목돈이 돌아와요', body: '급하게 돈이 필요해도 전부 깨지 않고, 그달 만기분만 쓰면 돼요.' },
@@ -54,18 +54,12 @@ export default function OnboardingScreen() {
         onMomentumScrollEnd={(e) => setPage(Math.round(e.nativeEvent.contentOffset.x / width))}
         style={styles.pager}
       >
-        <Page width={width} title="풍차돌리기란?" body={'매달 예·적금을 하나씩 새로 가입해서\n1년 뒤부터 매달 만기를 받는 저축법이에요.'}>
-          <Staircase />
-        </Page>
-
-        <Page width={width} title="왜 풍차돌리기를 할까요?" below={<BenefitList />} />
-
-        <Page width={width} title="적금 풍차 · 예금 풍차">
-          <View style={styles.compare}>
-            <CompareCard title="적금 풍차" body="매달 조금씩 넣는 적금을 여러 개. 월급에서 꾸준히 모을 때 좋아요." />
-            <CompareCard title="예금 풍차" body="목돈을 나눠 예금 여러 개. 필요할 때 일부만 꺼내 쓸 수 있어요." />
-          </View>
-        </Page>
+        <Page
+          width={width}
+          title="풍차돌리기란?"
+          body={'매달 예·적금을 하나씩 새로 가입해서\n1년 뒤부터 매달 만기를 받는 저축법이에요.'}
+          below={<BenefitList />}
+        />
 
         <Page
           width={width}
@@ -143,27 +137,7 @@ function BenefitList() {
   );
 }
 
-/** 홈 그래프를 닮은 계단식 막대 그림. */
-function Staircase() {
-  return (
-    <View style={styles.stairs}>
-      {[0, 1, 2, 3, 4].map((i) => (
-        <View key={i} style={[styles.stair, { marginLeft: i * 28 }]}>
-          <View style={[styles.stairFill, { width: `${100 - i * 20}%` }]} />
-        </View>
-      ))}
-    </View>
-  );
-}
 
-function CompareCard({ title, body }: { title: string; body: string }) {
-  return (
-    <View style={styles.compareCard}>
-      <Text style={styles.compareTitle}>{title}</Text>
-      <Text style={styles.compareBody}>{body}</Text>
-    </View>
-  );
-}
 
 const styles = StyleSheet.create({
   screen: {
@@ -240,40 +214,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     lineHeight: 21,
     color: colors.textMuted,
-  },
-  stairs: {
-    gap: 10,
-  },
-  stair: {
-    width: 150,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: colors.primarySoft,
-    overflow: 'hidden',
-  },
-  stairFill: {
-    height: 24,
-    backgroundColor: colors.primary,
-  },
-  compare: {
-    alignSelf: 'stretch',
-    gap: spacing.md,
-  },
-  compareCard: {
-    backgroundColor: colors.bg,
-    borderRadius: radius.lg,
-    padding: spacing.lg,
-  },
-  compareTitle: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: colors.primary,
-    marginBottom: spacing.xs,
-  },
-  compareBody: {
-    fontSize: 15,
-    color: colors.text,
-    lineHeight: 22,
   },
   calcExample: {
     alignItems: 'center',

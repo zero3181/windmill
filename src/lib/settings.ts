@@ -29,7 +29,8 @@ export interface AppSettings {
 export const DEFAULT_SETTINGS: AppSettings = {
   notifyD7: true,
   notifyDday: true,
-  notifyPayday: true,
+  // 적금은 대부분 자동이체라 납입 알림은 원하는 사람만 켠다.
+  notifyPayday: false,
   defaultTaxType: 'general',
   onboardingDone: false,
   windmillSize: { savings: 12, deposit: 12 },

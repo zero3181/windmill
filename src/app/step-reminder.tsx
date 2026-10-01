@@ -5,7 +5,7 @@ import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { PrimaryButton } from '../components/ui/Controls';
 import { addDays, addMonthsClamped, compareISODates, parseISODate, todayKST } from '../lib/calc';
 import { formatDateShort } from '../lib/format';
-import { ensureNotificationSetup } from '../lib/notifications';
+import { askNotificationPermission } from '../lib/notifications';
 import { useAccounts } from '../store/AccountsContext';
 import { colors, spacing } from '../theme';
 import type { AccountType } from '../types/account';
@@ -53,7 +53,9 @@ export default function StepReminderScreen() {
   const label = `${m}월 ${params.step}번째 ${UNIT[type]} 가입`;
 
   async function handleSave() {
-    if (!(await ensureNotificationSetup(true).catch(() => false))) {
+    const permission = await askNotificationPermission('고른 날 9시에 가입할 차례를 알려드릴게요.').catch(() => 'denied' as const);
+    if (permission === 'later') return;
+    if (permission === 'denied') {
       Alert.alert('알림이 꺼져 있어요', '설정 앱의 풍차돌리기 > 알림에서 허용해 주세요.');
       return;
     }
