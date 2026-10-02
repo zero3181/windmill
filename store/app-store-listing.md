@@ -84,17 +84,18 @@ App Store Connect의 각 칸에 그대로 붙여 넣을 수 있게 정리했습�
 `store/screenshots/` 순서대로 올리면 됩니다. 문구 없는 원본은 `store/screenshots/raw/`에 있습니다.
 
 1. `1_complete.png` — 매달 만기가 돌아오는 나만의 풍차
-2. `2_progress.png` — 이번 달 할 일만 따라 하면 돼요
-3. `3_deposit.png` — 날개 하나가 만기 한 달이에요
-4. `4_create.png` — 날개 수와 금액만 정하면 시작
-5. `5_join.png` — 어떤 조건으로 가입할지 바로 알려드려요
-6. `6_dark.png` — 밤에도 눈 편하게, Face ID로 안전하게
+2. `2_intro.png` — 풍차돌리기가 처음이어도 차근차근 알려드려요
+3. `3_progress.png` — 이번 달 할 일만 따라 하면 돼요
+4. `4_deposit.png` — 날개 하나가 만기 한 달이에요
+5. `5_create.png` — 날개 수와 금액만 정하면 시작
+6. `6_join.png` — 어떤 조건으로 가입할지 바로 알려드려요
+7. `7_dark.png` — 밤에도 눈 편하게, Face ID로 안전하게
 
 6.9인치 스크린샷만 올리면 작은 화면용은 App Store가 자동으로 줄여서 씁니다.
 
 ### iPad 13인치 (2064 × 2752)
 
-`store/screenshots/ipad/`의 같은 이름 6장을 같은 순서로 올리면 됩니다. 원본은 `store/screenshots/ipad/raw/`에 있습니다.
+`store/screenshots/ipad/`의 같은 이름 7장을 같은 순서로 올리면 됩니다. 원본은 `store/screenshots/ipad/raw/`에 있습니다.
 
 ## 웹페이지 (GitHub Pages)
 
