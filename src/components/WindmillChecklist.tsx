@@ -14,8 +14,6 @@ interface Props {
   today: string;
   /** 지금 할 단계를 눌렀을 때 (가입 등록) */
   onJoin: (step: ChecklistStep) => void;
-  /** 이 단계에 맞는 금리 높은 상품 보기 */
-  onFindProducts: (step: ChecklistStep) => void;
   onOpenAccount: (accountId: string) => void;
   /** 다음 가입 알림 날짜 (없으면 알림 없음) */
   reminderDate?: string;
@@ -39,7 +37,6 @@ export function WindmillChecklist({
   type,
   today,
   onJoin,
-  onFindProducts,
   onOpenAccount,
   reminderDate,
   onReminder,
@@ -115,18 +112,20 @@ export function WindmillChecklist({
 
           if (step.status === 'now') {
             return (
-              <View key={step.index} style={[styles.row, styles.rowNow]}>
+              // 줄 전체를 누르면 바로 가입 기록 시트가 열린다.
+              <Pressable
+                key={step.index}
+                style={({ pressed }) => [styles.row, styles.rowCentered, styles.rowNow, pressed && styles.rowNowPressed]}
+                onPress={() => onJoin(step)}
+                accessibilityRole="button"
+                accessibilityHint="가입한 계좌를 기록해요"
+              >
                 <StepNumber n={step.index + 1} active />
-                <View style={styles.rowMain}>
-                  <Text style={styles.nowTitle} lineBreakStrategyIOS="hangul-word">
-                    {step.index + 1}번째 {unit}을 가입하세요
-                  </Text>
-                  <View style={styles.actions}>
-                    <PillButton label="가입했어요" onPress={() => onJoin(step)} />
-                    <LinkButton label="금리 높은 상품 보기" onPress={() => onFindProducts(step)} />
-                  </View>
-                </View>
-              </View>
+                <Text style={[styles.nowTitle, styles.rowMain]} lineBreakStrategyIOS="hangul-word">
+                  {step.index + 1}번째 {unit}을 가입하세요
+                </Text>
+                <Chevron />
+              </Pressable>
             );
           }
 
@@ -248,6 +247,9 @@ const styles = StyleSheet.create({
   },
   rowNow: {
     backgroundColor: colors.primarySoft,
+  },
+  rowNowPressed: {
+    opacity: 0.6,
   },
   moreText: {
     fontSize: 15,

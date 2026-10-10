@@ -142,17 +142,6 @@ export default function HomeScreen() {
     router.push({ pathname: '/add-account', params: { prefill: JSON.stringify(prefill), step: String(step.index + 1) } });
   }
 
-  function handleFindProducts(step: ChecklistStep) {
-    router.push({
-      pathname: '/rates',
-      params: {
-        type,
-        term: String(checklist?.termMonths ?? blades),
-        step: String(step.index + 1),
-        amount: String(checklist?.perAccount ?? ''),
-      },
-    });
-  }
 
   if (loading) {
     return (
@@ -186,7 +175,6 @@ export default function HomeScreen() {
         type={type}
         today={today}
         onJoin={handleJoin}
-        onFindProducts={handleFindProducts}
         onOpenAccount={(id) => router.push(`/account/${id}`)}
         reminderDate={settings.stepReminder[type]}
         matured={matured}
