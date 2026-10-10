@@ -178,7 +178,9 @@ export function WindmillChecklist({
 
         {hiddenCount > 0 && (
           <Pressable style={[styles.row, styles.rowCentered]} onPress={() => setShowAllPending(true)}>
-            <Text style={[styles.moreText, styles.rowMain]}>그 뒤 {hiddenCount}단계 더보기</Text>
+            <Text style={[styles.moreText, styles.rowMain]} accessibilityLabel={`${hiddenCount}단계 더보기`}>
+              더보기
+            </Text>
             <Chevron direction="down" />
           </Pressable>
         )}

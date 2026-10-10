@@ -110,11 +110,6 @@ export default function SettingsScreen() {
         })}
       </GroupedSection>
 
-      <GroupedSection title="세부 기능">
-        <ListRow title="금리 비교" chevron onPress={() => router.push('/rates')} />
-        <ListRow title="계좌 직접 등록" chevron onPress={() => router.push('/add-account')} />
-      </GroupedSection>
-
       <GroupedSection title="알림">
         <ListRow title="만기 D-7 알림" right={toggle(settings.notifyD7, (v) => updateSettings({ notifyD7: v }))} />
         <ListRow title="만기 당일 알림" right={toggle(settings.notifyDday, (v) => updateSettings({ notifyDday: v }))} />

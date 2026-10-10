@@ -1,13 +1,13 @@
-import { Stack, useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, Animated, Platform, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { ActivityIndicator, Animated, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AccountListItem } from '../components/AccountListItem';
 import { EmptyState } from '../components/EmptyState';
+import { HomeMenu, type HomeMenuItem } from '../components/HomeMenu';
 import { SamplePreview } from '../components/SamplePreview';
 import { PrimaryButton, Segmented } from '../components/ui/Controls';
 import { Card, GroupedSection, ListRow } from '../components/ui/Grouped';
-import { HeaderTextButton } from '../components/ui/HeaderActions';
 import { WindmillCard } from '../components/WindmillCard';
 import { WindmillChecklist } from '../components/WindmillChecklist';
 import { Toast } from '../components/Toast';
@@ -213,43 +213,38 @@ export default function HomeScreen() {
       </Card>
     );
 
+  // 오른쪽 위 더 보기 메뉴 (iOS·Android 같은 항목)
+  const menuItems: HomeMenuItem[] = [
+    ...(goal
+      ? [
+          {
+            label: `${TYPE_LABEL[type]} 풍차 수정`,
+            icon: { ios: 'slider.horizontal.3', android: 'tune' },
+            onPress: () => router.push({ pathname: '/create-windmill', params: { type } }),
+          } as HomeMenuItem,
+        ]
+      : []),
+    ...(typesInUse.length > 0 && !settings.goals[otherType]
+      ? [
+          {
+            label: `${TYPE_LABEL[otherType]} 풍차도 만들기`,
+            icon: { ios: 'plus', android: 'add' },
+            onPress: () => router.push({ pathname: '/create-windmill', params: { type: otherType } }),
+          } as HomeMenuItem,
+        ]
+      : []),
+    {
+      label: '계좌 직접 등록',
+      icon: { ios: 'square.and.pencil', android: 'edit_square' },
+      onPress: () => router.push('/add-account'),
+    },
+    { label: '금리 비교', icon: { ios: 'percent', android: 'percent' }, onPress: () => router.push('/rates') },
+    { label: '설정', icon: { ios: 'gearshape', android: 'settings' }, onPress: () => router.push('/settings') },
+  ];
+
   return (
     <>
-      {/* iOS는 … 메뉴, Android는 설정 버튼 (메뉴의 항목은 모두 설정에도 있다) */}
-      {Platform.OS === 'ios' ? (
-        <>
-          <Stack.Toolbar placement="right">
-            <Stack.Toolbar.Menu icon="ellipsis" accessibilityLabel="더 보기">
-              {goal && (
-                <Stack.Toolbar.MenuAction
-                  icon="slider.horizontal.3"
-                  onPress={() => router.push({ pathname: '/create-windmill', params: { type } })}
-                >
-                  {`${TYPE_LABEL[type]} 풍차 수정`}
-                </Stack.Toolbar.MenuAction>
-              )}
-              {typesInUse.length > 0 && !settings.goals[otherType] && (
-                <Stack.Toolbar.MenuAction
-                  icon="plus"
-                  onPress={() => router.push({ pathname: '/create-windmill', params: { type: otherType } })}
-                >
-                  {`${TYPE_LABEL[otherType]} 풍차도 만들기`}
-                </Stack.Toolbar.MenuAction>
-              )}
-              <Stack.Toolbar.MenuAction icon="square.and.pencil" onPress={() => router.push('/add-account')}>
-                계좌 직접 등록
-              </Stack.Toolbar.MenuAction>
-              <Stack.Toolbar.MenuAction icon="gearshape" onPress={() => router.push('/settings')}>
-                설정
-              </Stack.Toolbar.MenuAction>
-            </Stack.Toolbar.Menu>
-          </Stack.Toolbar>
-        </>
-      ) : (
-        <Stack.Screen
-          options={{ headerRight: () => <HeaderTextButton label="설정" floating onPress={() => router.push('/settings')} /> }}
-        />
-      )}
+      <HomeMenu items={menuItems} />
 
       {hasData && (
         // 풍차는 뒤쪽 층에 고정: 스크롤하면 절반 속도로 올라가며 흐려지고, 아래 시트가 덮는다.

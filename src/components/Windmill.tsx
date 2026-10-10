@@ -193,11 +193,11 @@ export function Windmill({ blades, filled, width, type = 'savings', showMonths =
               pointerEvents="none"
               style={[
                 styles.monthLabel,
-                { left: x * scale - MONTH_LABEL / 2, top: y * scale - MONTH_LABEL / 2, backgroundColor: art.labelBg },
+                { left: x * scale - MONTH_LABEL_W / 2, top: y * scale - MONTH_LABEL / 2, backgroundColor: art.labelBg },
               ]}
             >
               <Text style={[styles.monthText, { color: art.labelText }]} maxFontSizeMultiplier={1.3}>
-                {bladeMonth(i, blades)}
+                {bladeMonth(i, blades)}월
               </Text>
             </View>
           );
@@ -207,11 +207,13 @@ export function Windmill({ blades, filled, width, type = 'savings', showMonths =
 }
 
 const MONTH_LABEL = 22;
+/** '12월'까지 들어가는 알약 폭 */
+const MONTH_LABEL_W = 32;
 
 const styles = StyleSheet.create({
   monthLabel: {
     position: 'absolute',
-    width: MONTH_LABEL,
+    width: MONTH_LABEL_W,
     height: MONTH_LABEL,
     borderRadius: MONTH_LABEL / 2,
     alignItems: 'center',
