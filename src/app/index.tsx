@@ -176,7 +176,12 @@ export default function HomeScreen() {
         today={today}
         onJoin={handleJoin}
         onOpenAccount={(id) => router.push(`/account/${id}`)}
-        reminderDate={settings.stepReminder[type]}
+        reminderDate={
+          // 이미 지난 알림 날짜는 보여 주지 않는다 (다시 고르게 한다)
+          settings.stepReminder[type] && compareISODates(settings.stepReminder[type]!, today) >= 0
+            ? settings.stepReminder[type]
+            : undefined
+        }
         matured={matured}
         onRenew={handleRenew}
         onCloseMatured={async (account) => {

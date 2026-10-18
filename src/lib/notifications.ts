@@ -85,7 +85,10 @@ export async function rescheduleAllNotifications(
     const goal = settings.goals[type];
     const remindOn = settings.stepReminder[type];
     if (!goal || !remindOn || compareISODates(remindOn, today) < 0) continue;
-    const next = buildChecklist(goal, type, accounts, today).steps.find((s) => s.status === 'scheduled');
+    // 지금 가입할 차례이거나 다음 가입 달을 기다리는 단계 (할 일에서 종이 붙은 단계)
+    const next = buildChecklist(goal, type, accounts, today).steps.find(
+      (s) => s.status === 'now' || s.status === 'scheduled'
+    );
     if (!next) continue;
     const unit = type === 'savings' ? '적금' : '예금';
     await Notifications.scheduleNotificationAsync({

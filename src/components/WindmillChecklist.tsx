@@ -114,11 +114,15 @@ export function WindmillChecklist({
                 onPress={() => onJoin(step)}
                 accessibilityRole="button"
                 accessibilityHint="가입한 계좌를 기록해요"
+                // 줄이 한 덩어리로 읽혀서, 안의 종 버튼은 VoiceOver 동작으로도 열 수 있게 한다
+                accessibilityActions={[{ name: 'reminder', label: '가입 알림' }]}
+                onAccessibilityAction={(e) => e.nativeEvent.actionName === 'reminder' && onReminder(step)}
               >
                 <StepNumber n={step.index + 1} active />
                 <Text style={[styles.nowTitle, styles.rowMain]} lineBreakStrategyIOS="hangul-word">
                   {step.index + 1}번째 {unit}을 가입하세요
                 </Text>
+                <ReminderPill date={reminderDate} month={month} onPress={() => onReminder(step)} />
                 <Chevron />
               </Pressable>
             );
@@ -131,30 +135,7 @@ export function WindmillChecklist({
                 <Text style={[styles.scheduledTitle, styles.rowMain]} lineBreakStrategyIOS="hangul-word">
                   {month}에 {step.index + 1}번째 {unit}을 가입하세요
                 </Text>
-                {/* 종 옆에 알림 날짜(없으면 '알림')를 붙여 무엇을 하는 버튼인지, 언제 오는지 보이게 한다 */}
-                <Pressable
-                  style={[styles.bell, reminderDate && styles.bellOn]}
-                  onPress={() => onReminder(step)}
-                  hitSlop={8}
-                  accessibilityRole="button"
-                  accessibilityLabel={reminderDate ? `${formatDateShort(reminderDate)}에 가입 알림, 바꾸기` : `${month} 가입 알림 받기`}
-                >
-                  <SymbolView
-                    accessibilityElementsHidden
-                    importantForAccessibility="no-hide-descendants"
-                    name={
-                      reminderDate
-                        ? { ios: 'bell.fill', android: 'notifications_active' }
-                        : { ios: 'bell', android: 'notifications' }
-                    }
-                    size={15}
-                    tintColor={reminderDate ? '#FFFFFF' : colors.primary}
-                    fallback={<Text style={styles.bellFallback}>🔔</Text>}
-                  />
-                  <Text style={[styles.bellText, reminderDate && styles.bellTextOn]}>
-                    {reminderDate ? formatDateShort(reminderDate) : '알림'}
-                  </Text>
-                </Pressable>
+                <ReminderPill date={reminderDate} month={month} onPress={() => onReminder(step)} />
               </View>
             );
           }
@@ -184,6 +165,29 @@ export function WindmillChecklist({
 }
 
 const DONE_ICON: SymbolViewProps['name'] = { ios: 'checkmark.circle.fill', android: 'check_circle' };
+
+/** 종 옆에 알림 날짜(없으면 '알림')를 붙여 무엇을 하는 버튼인지, 언제 오는지 보이게 한다 */
+function ReminderPill({ date, month, onPress }: { date?: string; month: string; onPress: () => void }) {
+  return (
+    <Pressable
+      style={[styles.bell, date && styles.bellOn]}
+      onPress={onPress}
+      hitSlop={8}
+      accessibilityRole="button"
+      accessibilityLabel={date ? `${formatDateShort(date)}에 가입 알림, 바꾸기` : `${month} 가입 알림 받기`}
+    >
+      <SymbolView
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        name={date ? { ios: 'bell.fill', android: 'notifications_active' } : { ios: 'bell', android: 'notifications' }}
+        size={15}
+        tintColor={date ? '#FFFFFF' : colors.primary}
+        fallback={<Text style={styles.bellFallback}>🔔</Text>}
+      />
+      <Text style={[styles.bellText, date && styles.bellTextOn]}>{date ? formatDateShort(date) : '알림'}</Text>
+    </Pressable>
+  );
+}
 
 function StepIcon({ name, color }: { name: SymbolViewProps['name']; color: ColorValue }) {
   return (
