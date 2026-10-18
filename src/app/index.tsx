@@ -264,7 +264,13 @@ export default function HomeScreen() {
             },
           ]}
         >
-          <WindmillHero blades={blades} filled={windmill.filledBlades} type={type} showMonths={showMonths} />
+          <WindmillHero
+            blades={blades}
+            filled={windmill.filledBlades}
+            type={type}
+            months={windmill.bladeMonths}
+            showMonths={showMonths}
+          />
         </Animated.View>
       )}
 

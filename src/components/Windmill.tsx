@@ -53,6 +53,8 @@ interface Props {
   width: number;
   /** 적금(한색) / 예금(난색) 풍차 색 */
   type?: AccountType;
+  /** 날개 자리마다 붙일 달 이름. 없으면 기본 이름(bladeMonth)을 쓴다. */
+  months?: number[];
   /** 날개 끝에 각 날개가 뜻하는 달(1~12)을 보여 준다. 보이는 동안은 돌지 않는다. */
   showMonths?: boolean;
 }
@@ -61,7 +63,8 @@ interface Props {
  * 날개 하나가 달 하나를 뜻하는 풍차. 시계처럼 12시 방향이 12월, 1시 방향이 1월이다.
  * 계좌의 만기월 자리에 날개가 생기고, 모든 자리가 채워지면 돌아간다.
  */
-export function Windmill({ blades, filled, width, type = 'savings', showMonths = false }: Props) {
+export function Windmill({ blades, filled, width, type = 'savings', months, showMonths = false }: Props) {
+  const monthOf = (p: number) => months?.[p] ?? bladeMonth(p, blades);
   const filledSet = new Set(filled);
   const count = filledSet.size;
   const complete = count >= blades;
@@ -128,7 +131,7 @@ export function Windmill({ blades, filled, width, type = 'savings', showMonths =
       accessibilityLabel={
         complete
           ? `풍차 완성, 날개 ${blades}개`
-          : `풍차 날개 ${blades}개 중 ${count}개 채움${count > 0 ? ` (${[...filledSet].sort((a, b) => a - b).map((p) => `${bladeMonth(p, blades)}월`).join(', ')})` : ''}`
+          : `풍차 날개 ${blades}개 중 ${count}개 채움${count > 0 ? ` (${[...filledSet].sort((a, b) => a - b).map((p) => `${monthOf(p)}월`).join(', ')})` : ''}`
       }
     >
       <Svg width={width} height={width * (VIEW_H / VIEW)} viewBox={`0 0 ${VIEW} ${VIEW_H}`} style={StyleSheet.absoluteFill}>
@@ -197,7 +200,7 @@ export function Windmill({ blades, filled, width, type = 'savings', showMonths =
               ]}
             >
               <Text style={[styles.monthText, { color: art.labelText }]} maxFontSizeMultiplier={1.3}>
-                {bladeMonth(i, blades)}월
+                {monthOf(i)}월
               </Text>
             </View>
           );

@@ -1,5 +1,5 @@
 import type { Account } from '../types/account';
-import { bladePosition, fitsWindmill } from './blades';
+import { bladeMonths, bladePosition, fitsWindmill } from './blades';
 import {
   addMonthsClamped,
   calcAccountFinancials,
@@ -141,6 +141,8 @@ export interface Windmill {
   count: number;
   /** 채워진 날개 자리. 만기월이 같은 자리(12날개면 같은 달)인 계좌는 날개 하나로 친다. */
   filledBlades: number[];
+  /** 날개 자리마다 붙일 달 이름 (6날개는 실제 만기월에 맞춘 연속 6개월) */
+  bladeMonths: number[];
   /** 지금까지 납입한 원금 합계 (적금: 납입된 회차 합, 예금: 예치액) */
   totalPrincipal: number;
 }
@@ -194,6 +196,11 @@ export function selectWindmill(
     today: monthPosition(rangeStart, today),
     count: rows.length,
     filledBlades: [...new Set(bars.map((b) => b.bladeIndex).filter((i) => i >= 0))].sort((a, b) => a - b),
+    bladeMonths: bladeMonths(
+      bars.filter((b) => b.bladeIndex >= 0).map((b) => b.item.financials.maturityDate),
+      blades,
+      today
+    ),
     totalPrincipal: rows.reduce((sum, r) => sum + r.financials.currentPrincipal, 0),
   };
 }

@@ -9,11 +9,14 @@ export function WindmillHero({
   blades,
   filled,
   type,
+  months,
   showMonths: showMonthsProp,
 }: {
   blades: number;
   filled: number[];
   type: AccountType;
+  /** 날개 자리마다 붙일 달 이름 (selectWindmill의 bladeMonths) */
+  months?: number[];
   /** 바깥(홈의 패럴랙스 스크롤)에서 월 숫자 표시를 정할 때 */
   showMonths?: boolean;
 }) {
@@ -32,7 +35,7 @@ export function WindmillHero({
         accessibilityRole="button"
         accessibilityHint="각 날개가 몇 월인지 보여 줘요"
       >
-        <Windmill blades={blades} filled={filled} width={238} type={type} showMonths={showMonthsProp ?? showMonths} />
+        <Windmill blades={blades} filled={filled} width={238} type={type} months={months} showMonths={showMonthsProp ?? showMonths} />
       </Pressable>
     </View>
   );
