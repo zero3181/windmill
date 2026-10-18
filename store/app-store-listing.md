@@ -139,7 +139,7 @@ All data stays on the device. Notifications are local. No analytics, ads, or tra
 `store/screenshots/` 순서대로 올리면 됩니다. 문구 없는 원본은 `store/screenshots/raw/`에 있습니다. 6.9인치만 올리면 작은 화면용은 App Store가 자동으로 줄여서 씁니다.
 
 1. `1_complete.png` — 매달 만기가 돌아오는 나만의 풍차
-2. `2_intro.png` — 풍차돌리기가 처음이어도 차근차근 알려드려요
+2. `2_guide.png` — 풍차돌리기가 처음이어도 그림으로 쉽게 알려드려요
 3. `3_progress.png` — 이번 달 할 일만 따라 하면 돼요
 4. `4_deposit.png` — 날개 하나가 만기 한 달이에요
 5. `5_create.png` — 날개 수와 금액만 정하면 시작
@@ -149,6 +149,31 @@ All data stays on the device. Notifications are local. No analytics, ads, or tra
 ### iPad 13인치 (2064 × 2752)
 
 `store/screenshots/ipad/`의 같은 이름 7장을 같은 순서로 올리면 됩니다. 원본은 `store/screenshots/ipad/raw/`에 있습니다.
+
+## 앱 미리보기 (영상)
+
+| 기기 | 파일 | 규격 |
+| --- | --- | --- |
+| iPhone 6.9인치 | `store/previews/app-preview-iphone-886x1920.mp4` | 886 × 1920, 25초, 30fps, H.264, 스테레오 AAC(무음) |
+| iPad 13인치 | `store/previews/app-preview-ipad-1200x1600.mp4` | 1200 × 1600, 25초, 30fps, H.264, 스테레오 AAC(무음) |
+
+- 흐름: 홈 → 풍차를 눌러 날개의 월 보기 → 할 일 줄을 눌러 가입 기록 → 날개가 채워짐 → 예금 풍차(석양)로 전환 → 메뉴의 '풍차돌리기란?' 안내
+- 소리 없이도 이해되도록 만들었습니다 (App Store는 기본 무음 재생).
+- 포스터 프레임: 3초쯤(날개마다 월 이름이 보이는 장면)을 고르세요.
+- 스크린샷보다 앞에 놓이며, 최대 3개까지 올릴 수 있습니다.
+
+## 제품 페이지 헤더 · 검색 결과 이미지
+
+| 위치 | 파일 | 규격 |
+| --- | --- | --- |
+| 제품 페이지 헤더 | `store/creative/header-21x9-3840x1646.png` | 21:9, 3840 × 1646, PNG(알파 없음) |
+| 검색 결과 | `store/creative/search-3x2-3840x2560.png` | 3:2, 3840 × 2560, PNG(알파 없음) |
+
+- 헤더: 하늘(적금)과 석양(예금) 위의 두 풍차와 한 줄 문구 "매달 만기가 돌아오는 풍차". 핵심 그림과 글자는 가운데에 모아 잘리지 않게 했습니다.
+- 검색 결과: 실제 앱 화면 세 장(할 일, 완성된 풍차, 예금 풍차)으로 무엇을 하는 앱인지 바로 보이게 했습니다.
+- 가격, URL, 수상 문구, 다른 플랫폼 언급은 넣지 않았습니다 (애플 가이드).
+- App Store Connect의 앱 › 크리에이티브 에셋(제품 페이지 · 검색 결과)에 올립니다. 이 메뉴가 계정에 아직 없으면 건너뛰어도 됩니다 (없으면 미리보기와 스크린샷이 대신 보입니다).
+- 그림 원본(HTML)은 `store/creative/source/`에 있습니다.
 
 ## 심사에서 자주 걸리는 부분 점검
 
