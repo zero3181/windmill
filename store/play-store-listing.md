@@ -66,7 +66,7 @@ Play Console › **모든 앱** › **앱 만들기**
 | 앱/게임 | 앱 |
 | 유료/무료 | 무료 |
 | 카테고리 | 금융 |
-| 태그 | 개인 금융, 예산 |
+| 태그 | 개인 금융, 금융, 생산성 |
 | 연락처 이메일 | _직접 입력 (공개됨)_ |
 | 웹사이트 | https://zero3181.github.io/windmill/ |
 | 개인정보처리방침 | https://zero3181.github.io/windmill/privacy.html |
