@@ -137,23 +137,24 @@ function StairDiagram() {
 function MaturityStrip() {
   return (
     <View
-      style={styles.strip}
+      style={styles.stripWrap}
       accessible
       accessibilityRole="image"
       accessibilityLabel="내년 1월부터 12월까지 매달 만기가 하나씩 돌아오는 그림"
     >
-      {Array.from({ length: 12 }, (_, i) => (
-        <View key={i} style={styles.stripCell}>
-          <View style={[styles.coin, { backgroundColor: bladeColor(i, 12) }]}>
+      <View style={styles.stripAxis}>
+        <Text style={styles.axisText}>내년 1월</Text>
+        <Text style={styles.axisText}>12월</Text>
+      </View>
+      <View style={styles.strip}>
+        {Array.from({ length: 12 }, (_, i) => (
+          <View key={i} style={[styles.coin, { backgroundColor: bladeColor(i, 12) }]}>
             <Text style={styles.coinText} maxFontSizeMultiplier={1.2}>
               {i + 1}
             </Text>
           </View>
-          <Text style={styles.coinLabel} maxFontSizeMultiplier={1.2}>
-            월
-          </Text>
-        </View>
-      ))}
+        ))}
+      </View>
     </View>
   );
 }
@@ -285,14 +286,17 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#FFFFFF',
   },
+  stripWrap: {
+    marginVertical: spacing.md,
+    gap: 6,
+  },
+  stripAxis: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
   strip: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginVertical: spacing.md,
-  },
-  stripCell: {
-    alignItems: 'center',
-    gap: 2,
   },
   coin: {
     width: 24,
@@ -305,10 +309,6 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     color: '#FFFFFF',
-  },
-  coinLabel: {
-    fontSize: 10,
-    color: colors.textMuted,
   },
   benefits: {
     marginTop: spacing.md,
