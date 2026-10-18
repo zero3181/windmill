@@ -37,6 +37,9 @@ export const colors = {
   warning: dynamic('#FF8D28', '#FF9230'),
   /** Fills/Tertiary */
   barEmpty: dynamic('rgba(118, 118, 128, 0.12)', 'rgba(118, 118, 128, 0.24)'),
+  /** 예금 풍차의 강조색 (난색). 흰 글자가 읽히도록 날개의 주황보다 한 단계 짙다 */
+  deposit: dynamic('#D9480F', '#E8590C'),
+  depositSoft: dynamic('rgba(255, 120, 40, 0.14)', 'rgba(255, 120, 40, 0.24)'),
   /** 토스트처럼 화면 위에 뜨는 어두운 판 */
   overlay: dynamic('rgba(0, 0, 0, 0.82)', 'rgba(58, 58, 60, 0.96)'),
 };
