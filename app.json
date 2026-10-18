@@ -44,7 +44,15 @@
           "faceIDPermission": "앱을 잠그고 풀 때 Face ID를 사용해요."
         }
       ],
-      "./plugins/withSceneLifecycle"
+      "./plugins/withSceneLifecycle",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "usePrecompiledModules": false
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

@@ -2,7 +2,7 @@ import { SymbolView, type SymbolViewProps } from 'expo-symbols';
 import React, { useState } from 'react';
 import { Pressable, StyleSheet, Text, View, type ColorValue } from 'react-native';
 import type { Checklist, ChecklistStep } from '../lib/checklist';
-import { formatDateShort, formatManwon, formatMonth } from '../lib/format';
+import { formatDateShort, formatMonth } from '../lib/format';
 import { colors, radius, spacing } from '../theme';
 import type { Account, AccountType } from '../types/account';
 import { LinkButton, PillButton } from './ui/Controls';
@@ -44,7 +44,7 @@ export function WindmillChecklist({
   onRenew,
   onCloseMatured,
 }: Props) {
-  const { steps, perAccount, termMonths, doneCount, complete } = checklist;
+  const { steps, doneCount, complete } = checklist;
   const [showDone, setShowDone] = useState(false);
   const [showAllPending, setShowAllPending] = useState(false);
   const unit = UNIT[type];
@@ -65,11 +65,6 @@ export function WindmillChecklist({
           {doneCount}/{steps.length}
         </Text>
       </View>
-      {/* 모든 단계에 같은 조건이라 한 번만 보여 준다. */}
-      <Text style={styles.summary}>
-        {termMonths}개월 {unit} · {type === 'savings' ? '월 ' : ''}
-        {formatManwon(perAccount)}
-      </Text>
 
       <View style={styles.card}>
         {matured.map((account) => (
@@ -261,12 +256,6 @@ const styles = StyleSheet.create({
   },
   rowCentered: {
     alignItems: 'center',
-  },
-  summary: {
-    fontSize: 15,
-    color: colors.textMuted,
-    paddingHorizontal: spacing.lg,
-    marginBottom: 2,
   },
   bell: {
     flexDirection: 'row',

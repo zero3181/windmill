@@ -227,6 +227,11 @@ export default function HomeScreen() {
       onPress: () => router.push('/add-account'),
     },
     { label: '금리 비교', icon: { ios: 'percent', android: 'percent' }, onPress: () => router.push('/rates') },
+    {
+      label: '풍차돌리기란?',
+      icon: { ios: 'questionmark.circle', android: 'help' },
+      onPress: () => router.push('/guide'),
+    },
     { label: '설정', icon: { ios: 'gearshape', android: 'settings' }, onPress: () => router.push('/settings') },
   ];
 
