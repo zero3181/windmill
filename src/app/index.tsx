@@ -4,6 +4,7 @@ import { ActivityIndicator, Animated, Pressable, ScrollView, StyleSheet, Text, u
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AccountListItem } from '../components/AccountListItem';
 import { EmptyState } from '../components/EmptyState';
+import { HeroSky } from '../components/HeroSky';
 import { HomeMenu, type HomeMenuItem } from '../components/HomeMenu';
 import { SamplePreview } from '../components/SamplePreview';
 import { PrimaryButton, Segmented } from '../components/ui/Controls';
@@ -243,6 +244,9 @@ export default function HomeScreen() {
   return (
     <>
       <HomeMenu items={menuItems} />
+
+      {/* 풍차 뒤 하늘: 화면 맨 위부터 시트 둥근 모서리 밑까지 깔린다 */}
+      {hasData && <HeroSky type={type} height={topOffset + heroHeight + 40} />}
 
       {hasData && (
         // 풍차는 뒤쪽 층에 고정: 스크롤하면 절반 속도로 올라가며 흐려지고, 아래 시트가 덮는다.
