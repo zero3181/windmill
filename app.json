@@ -50,6 +50,10 @@
         {
           "ios": {
             "usePrecompiledModules": false
+          },
+          "android": {
+            "enableMinifyInReleaseBuilds": true,
+            "enableShrinkResourcesInReleaseBuilds": true
           }
         }
       ]
