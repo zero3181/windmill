@@ -45,13 +45,12 @@ function AndroidMenu({ items }: { items: HomeMenuItem[] }) {
         accessibilityRole="button"
         accessibilityLabel="더 보기"
       >
-        <SymbolView
-          name={{ ios: 'ellipsis', android: 'more_vert' }}
-          size={22}
-          tintColor={colors.text}
-          accessibilityElementsHidden
-          importantForAccessibility="no-hide-descendants"
-        />
+        {/* 아이콘 글꼴은 기준선 때문에 원 가운데에서 비켜나므로 점 세 개를 직접 그린다 */}
+        <View style={styles.dots}>
+          <View style={styles.dot} />
+          <View style={styles.dot} />
+          <View style={styles.dot} />
+        </View>
       </Pressable>
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
         {/* 바깥을 누르면 닫힌다 */}
@@ -96,6 +95,17 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.6,
+  },
+  dots: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 3,
+  },
+  dot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: colors.text,
   },
   menu: {
     position: 'absolute',

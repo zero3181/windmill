@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Switch } from 'react-native';
+import { Alert, Platform, ScrollView, StyleSheet, Switch } from 'react-native';
 import { GroupedSection, ListRow } from '../components/ui/Grouped';
 import { exportBackup, pickAndParseBackup } from '../lib/backup';
 import { canUseAppLock, LOCK_METHOD, unlockApp } from '../lib/appLock';
@@ -8,6 +8,10 @@ import { askNotificationPermission } from '../lib/notifications';
 import { useAccounts } from '../store/AccountsContext';
 import { colors, spacing } from '../theme';
 import { TAX_TYPE_LABELS, type TaxType } from '../types/account';
+
+/** Android 스위치는 기본색이 앱 색과 달라서 iOS 스위치처럼 맞춘다 (iOS는 시스템 모양 그대로). */
+const SWITCH_TRACK = { false: '#D1D1D6', true: colors.success } as const;
+const SWITCH_THUMB = Platform.OS === 'android' ? '#FFFFFF' : undefined;
 
 export default function SettingsScreen() {
   const { accounts, rawSettings, settings, updateSettings, restoreFromBackup, resetAll } = useAccounts();
@@ -89,7 +93,7 @@ export default function SettingsScreen() {
       }
       onChange(v);
     };
-    return <Switch value={value} onValueChange={handleChange} trackColor={{ true: colors.success }} />;
+    return <Switch value={value} onValueChange={handleChange} trackColor={SWITCH_TRACK} thumbColor={SWITCH_THUMB} />;
   }
 
   return (
@@ -124,7 +128,12 @@ export default function SettingsScreen() {
         <ListRow
           title={`${LOCK_METHOD.withRo} 잠그기`}
           right={
-            <Switch value={settings.appLock} onValueChange={(v) => void handleAppLock(v)} trackColor={{ true: colors.success }} />
+            <Switch
+              value={settings.appLock}
+              onValueChange={(v) => void handleAppLock(v)}
+              trackColor={SWITCH_TRACK}
+              thumbColor={SWITCH_THUMB}
+            />
           }
         />
       </GroupedSection>

@@ -3,8 +3,8 @@ import { Stack, useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import { Alert, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { LinkButton, PrimaryButton } from '../components/ui/Controls';
-import { DateRow } from '../components/ui/FormRows';
-import { GroupedSection } from '../components/ui/Grouped';
+import { MonthCalendar } from '../components/MonthCalendar';
+import { Card } from '../components/ui/Grouped';
 import { HeaderActions } from '../components/ui/HeaderActions';
 import { addDays, addMonthsClamped, compareISODates, parseISODate, todayKST } from '../lib/calc';
 import { formatDateShort } from '../lib/format';
@@ -90,10 +90,10 @@ export default function StepReminderScreen() {
             onChange={(_e, picked) => picked && setDate(toISO(picked))}
           />
         ) : (
-          // Android에는 화면 안에 넣는 달력이 없어서, 날짜 행을 누르면 시스템 달력을 연다.
-          <GroupedSection>
-            <DateRow title="알림 날짜" value={date} onChange={setDate} minimumDate={today} />
-          </GroupedSection>
+          // Android에는 화면 안에 넣는 시스템 달력이 없어서, iOS처럼 그달 달력을 펼쳐 놓는다.
+          <Card>
+            <MonthCalendar month={monthStart} value={date} min={earliest} max={monthEnd} onChange={setDate} />
+          </Card>
         )}
         <Text style={styles.when}>{formatDateShort(date)} 9시</Text>
         <View style={styles.actions}>
@@ -115,6 +115,8 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: spacing.lg,
+    // Android는 제목줄 아래 전체 화면이라 위아래 여백을 넉넉히 둔다
+    paddingTop: Platform.OS === 'android' ? spacing.lg : 0,
     paddingBottom: spacing.lg,
     gap: spacing.md,
   },

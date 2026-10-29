@@ -13,6 +13,12 @@
       "appleTeamId": "39KK5Y75M6",
       "config": {
         "usesNonExemptEncryption": false
+      },
+      "infoPlist": {
+        "CFBundleDevelopmentRegion": "ko",
+        "CFBundleLocalizations": [
+          "ko"
+        ]
       }
     },
     "android": {
@@ -45,6 +51,7 @@
         }
       ],
       "./plugins/withSceneLifecycle",
+      "./plugins/withFixedFontWeight",
       [
         "expo-build-properties",
         {
