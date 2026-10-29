@@ -150,5 +150,15 @@ Play Console › **모든 앱** › **앱 만들기**
 
 ## 빌드
 
-- EAS에서 만든 `.aab`(업로드 키는 Expo가 보관)를 올립니다. 이번 파일: `pungcha-1.0.0-vc4.aab` (버전 1.0.0, versionCode 4, [EAS 빌드](https://expo.dev/accounts/zero3181/projects/pungcha-app/builds/08cef2e8-43a1-4d1a-abec-a626510402d5)).
+- EAS에서 만든 `.aab`(업로드 키는 Expo가 보관)를 올립니다. 이번 파일: `pungcha-1.0.0-vc7.aab` (버전 1.0.0, versionCode 7, [EAS 빌드](https://expo.dev/accounts/zero3181/projects/pungcha-app/builds/72eac8de-cf96-4d1e-9997-8cb58a07c617)).
+- 가독화(ReTrace) 파일: `pungcha-1.0.0-vc7-mapping.txt` → App Bundle 탐색기 › 해당 버전 › 다운로드 탭 › ReTrace 매핑 파일 업로드.
+- vc7 출시 노트:
+
+```
+<ko-KR>
+- '굵은 글꼴' 설정에서 글자 끝이 잘리던 문제를 고쳤어요.
+- 알림 날짜를 달력에서 바로 고를 수 있어요.
+- 메뉴 버튼과 설정 스위치 모양을 다듬었어요.
+</ko-KR>
+```
 - 첫 업로드는 Play Console에서 직접 해야 합니다. 그 뒤에는 서비스 계정 키로 `eas submit` 자동 제출을 연결할 수 있습니다.
